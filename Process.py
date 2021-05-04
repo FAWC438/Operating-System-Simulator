@@ -74,8 +74,8 @@ class Process:
         self.child_process_id = child_process_id
         self.recover = None  # TODO 保护CPU现场，此处保存CPU状态
 
-    def __lt__(self, other):  # operator <，用于FCFS
-        return self.__start_time < other.__start_time
+    # def __lt__(self, other):  # operator <，用于FCFS
+    #     return self.__start_time < other.__start_time
 
     def __str__(self):
         string = "进程ID：{}".format(self.__process_id) + '\n' + \
@@ -117,22 +117,6 @@ class Process:
         self.file = None  # TODO 释放文件
         self.IO_device = None  # TODO 释放IO设备
         return 1
-
-
-def block(self):
-    """
-    阻塞进程
-    :return:
-    """
-    self.state = State.waiting
-
-
-def turnReady(self):
-    """
-    将进程转为就绪态，在new、running和waiting的时候可用
-    :return:
-    """
-    self.state = State.ready
 
 
 def FCFS(process_q: PriorityQueue):
@@ -183,7 +167,7 @@ def priorityScheduling(process_q: list, system_clock: int):
             if p.state != State.running:
                 p.state = State.ready
 
-        process_now_queue.sort(key=lambda x: x.priorityScheduling)
+        process_now_queue.sort(key=lambda x: x.priority)
         process_cur = process_now_queue[0]  # 得到优先级最高的进程（优先级数字越低表示优先级越高）
         # 同时只有一个running的进程
         if process_cur.state == State.running:
@@ -207,14 +191,14 @@ def priorityScheduling(process_q: list, system_clock: int):
             if process_running is not None:
                 # 若上一个时钟周期是别的进程
                 process_running.state = State.ready
-                process_running.scheduled_time.append((system_clock, 1))
+                process_running.scheduled_info.append((system_clock, 1))
 
         if process_cur.state == State.terminated:
             process_running = None
         else:
             process_running = process_cur
         system_clock += 1
-        sleep(0.5)
+        # sleep(0.5)
     return system_clock
 
 

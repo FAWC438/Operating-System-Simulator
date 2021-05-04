@@ -67,5 +67,5 @@ class Frame:
         :param mapping_page: 该帧所映射到的页的id
         """
         self.frame_id = Tool.uniqueNum()
-        self.mapping_page = mapping_page  # TODO 设置地址
+        self.mapping_page = mapping_page
         self.is_used = False

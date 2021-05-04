@@ -7,5 +7,6 @@ if __name__ == '__main__':
     system_clock = 0
 
     if scheduling_algorithm == ProcessAlgorithm.Priority:
+        # 通过PyCharm的调试可查看输出结果
         system_clock = priorityScheduling(process_queue, system_clock)
     print('OK')

@@ -54,5 +54,6 @@ def allocateMemory(pageList: list, process_q: list):
                         page.is_allocated = False
                         process_to_replace.page_all_allocated = False
                         replace_success_flag = True
+                        break
             if not replace_success_flag:
                 print("页置换错误!!!!")
