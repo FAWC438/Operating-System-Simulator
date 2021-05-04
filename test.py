@@ -12,3 +12,4 @@ print()
 k = l[:3]
 for p in k:
     print(p.num, end=' ')
+

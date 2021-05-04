@@ -61,11 +61,11 @@ class Process:
         self.__start_time = start_time
         self.__last_time = last_time
         self.occupied_time = 0  # 已经使用的CPU时间，若该时间和last_time相等说明该进程已经执行完毕
-        self.scheduled_time = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
+        self.scheduled_info = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
         # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕），以便快照计算出CPU使用率等指标
         self.state = State.waiting  # 进程状态，在使用时注意先变为ready
         self.__page_num = page_num
-        self.page_allocated = False  # 判断页是否已经分配
+        self.page_all_allocated = False  # 判断页是否已经分配，请注意！存在进程中部分页已分配，部分未分配的情况，该情况下该字段也为False
         self.page_list = [Page(self.__process_id, self.__process_type) for _ in range(page_num)]  # 进程包含的页
         self.file = None  # TODO 进程所占用的文件
         self.IO_device = None  # TODO 进程所占用的IO设备
@@ -109,7 +109,7 @@ class Process:
         elif self.__last_time > self.occupied_time:
             print("进程未执行完毕便销毁")  # TODO 异常处理
             return -1
-        self.page_allocated = False
+        self.page_all_allocated = False
         for p in self.page_list:
             p.mapping_frame.is_used = False
             p.mapping_frame.mapping_page = None
@@ -168,6 +168,8 @@ def priorityScheduling(process_q: list, system_clock: int):
     """
     while system_clock < 300:
         over_flag = True  # 所有进程执行完毕退出循环
+
+        # 开始时间小于系统时间的设为ready，否则为waiting
         for p in process_q:
             if p.state != State.terminated and p.state != State.running:
                 over_flag = False
@@ -180,27 +182,30 @@ def priorityScheduling(process_q: list, system_clock: int):
         for p in process_now_queue:
             if p.state != State.running:
                 p.state = State.ready
-                if not p.page_allocated:
-                    temp_q = process_now_queue.copy()
-                    temp_q.remove(p)
-                    allocateMemory(p.page_list, temp_q)
-                    p.page_allocated = True
-        # 开始时间小于系统时间的设为ready，否则为waiting
-        # TODO:process_now_queue的进程是ready状态，需要分配内存
+
         process_now_queue.sort(key=lambda x: x.priorityScheduling)
         process_cur = process_now_queue[0]  # 得到优先级最高的进程（优先级数字越低表示优先级越高）
         # 同时只有一个running的进程
         if process_cur.state == State.running:
             process_cur.occupied_time += 1
             if process_cur.occupied_time >= process_cur.get_last_time():
-                process_cur.scheduled_time.append((system_clock, 3))
+                process_cur.scheduled_info.append((system_clock, 3))
                 process_cur.terminate()
         elif process_cur.state == State.ready:
+
+            # 分配内存
+            if not process_cur.page_all_allocated:
+                temp_q = process_q.copy()
+                temp_q.remove(process_cur)
+                allocateMemory(process_cur.page_list, temp_q)
+                process_cur.page_all_allocated = True
+
             process_cur.state = State.running
             process_cur.occupied_time += 1
-            process_cur.scheduled_time.append((system_clock, 0))
+            process_cur.scheduled_info.append((system_clock, 0))
 
             if process_running is not None:
+                # 若上一个时钟周期是别的进程
                 process_running.state = State.ready
                 process_running.scheduled_time.append((system_clock, 1))
 

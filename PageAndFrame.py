@@ -31,18 +31,17 @@ allocation_algorithm = PageAlgorithm.Default  # 使用的页调度算法
 
 class Page:
 
-    def __init__(self, pcb_id: int, mem_type: DataType, mapping_frame=None, bitmap=False):
+    def __init__(self, pcb_id: int, mem_type: DataType, mapping_frame=None):
         """
         Page 的构造函数展示了页结构，构造函数用于初始化页
         :param mapping_frame: 该页所对应的帧
-        :param bitmap: 空闲位 bitmap bool变量，True标记页被占用
         :param mem_type: 存储数据类型（进程pcb，文件fcb，io标识符）
         """
 
         self.page_id = Tool.uniqueNum()
         self.pcb_id = pcb_id
         self.mapping_frame = mapping_frame
-        self.bitmap = bitmap
+        self.is_allocated = False
         self.mem_type = mem_type
         self.process = None  # TODO 页存储的进程pcb
         self.file = None  # TODO 页所存储的文件
