@@ -42,6 +42,31 @@ def allocateMemory(pageList: list, process_q: list):
                     if latest_time > process.scheduled_info[-1][0]:
                         latest_time = process.scheduled_info[-1][0]
                         process_to_replace = process
+            '''
+            # 以下是opt
+            logest_time = 0
+            process_to_replace = None
+            cur_appearance = 0
+            for process in process_q:
+                if process.scheduled_info != [] and process.scheduled_info[-1][1] == 2:
+                    # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+
+                    # 若一个进程所有的页已经被换出，则不必再考虑该进程
+                    for page in process_to_replace.page_list:
+                        if page.is_allocated:
+                            break
+                    else:
+                        continue
+                    # 找出该进程的当前与下一次被调用的间隔
+                    for i in range(cur_appearance, len(process_q)):
+                        if process_q[i].__process_id == process.__process_id:
+                            if logest_time < (process_q[i].start_time - process.scheduled_info[-1][0]):
+                                logest_time = process_q[i].start_time - process.scheduled_info[-1][0]
+                                process_to_replace = process
+                            break
+                    
+                cur_appearance += 1
+            '''
             # 进行页面置换
             replace_success_flag = False
             if process_to_replace is not None:
