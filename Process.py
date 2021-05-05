@@ -111,8 +111,9 @@ class Process:
             return -1
         self.page_all_allocated = False
         for p in self.page_list:
-            p.mapping_frame.is_used = False
-            p.mapping_frame.mapping_page = None
+            if p.mapping_frame is not None:
+                p.mapping_frame.is_used = False
+                p.mapping_frame.mapping_page = None
         self.page_list = None
         self.file = None  # TODO 释放文件
         self.IO_device = None  # TODO 释放IO设备
@@ -173,9 +174,15 @@ def priorityScheduling(process_q: list, system_clock: int):
         if process_cur.state == State.running:
             process_cur.occupied_time += 1
             if process_cur.occupied_time >= process_cur.get_last_time():
+                # 进程执行完毕
                 process_cur.scheduled_info.append((system_clock, 3))
-                process_cur.terminate()
+                process_cur.terminate()  # 该方法会将进程变为terminated态
         elif process_cur.state == State.ready:
+
+            if process_running is not None:
+                # 若上一个时钟周期是别的进程
+                process_running.state = State.ready
+                process_running.scheduled_info.append((system_clock, 1))
 
             # 分配内存
             if not process_cur.page_all_allocated:
@@ -187,11 +194,6 @@ def priorityScheduling(process_q: list, system_clock: int):
             process_cur.state = State.running
             process_cur.occupied_time += 1
             process_cur.scheduled_info.append((system_clock, 0))
-
-            if process_running is not None:
-                # 若上一个时钟周期是别的进程
-                process_running.state = State.ready
-                process_running.scheduled_info.append((system_clock, 1))
 
         if process_cur.state == State.terminated:
             process_running = None

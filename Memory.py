@@ -1,6 +1,6 @@
 from PageAndFrame import *
 
-Memory = [Frame(i) for i in range(100)]  # 默认内存有100个帧
+Memory = [Frame(i) for i in range(5)]  # 默认内存有100个帧
 
 
 def allocateMemory(pageList: list, process_q: list):
@@ -29,11 +29,11 @@ def allocateMemory(pageList: list, process_q: list):
             process_to_replace = None
             # 先找到可以被置换的，最久没有使用的进程
             for process in process_q:
-                if process.scheduled_info != [] and process.scheduled_info[-1][1] == 2:
+                if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
                     # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
 
                     # 若一个进程所有的页已经被换出，则不必再考虑该进程
-                    for page in process_to_replace.page_list:
+                    for page in process.page_list:
                         if page.is_allocated:
                             break
                     else:
