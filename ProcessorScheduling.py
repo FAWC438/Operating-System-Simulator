@@ -59,6 +59,9 @@ def priorityScheduling(process_q: list, system_clock: int):
             process_cur.occupied_time += 1
             if process_cur.occupied_time >= process_cur.get_last_time():
                 # 进程执行完毕
+
+                # TODO:根据DataType，若不是default类型的话，在这执行相应的File/IO操作
+
                 process_cur.scheduled_info.append((system_clock, 3))
                 process_cur.terminate()  # 该方法会将进程变为terminated态
         elif process_cur.state == State.ready:
@@ -74,10 +77,6 @@ def priorityScheduling(process_q: list, system_clock: int):
                 temp_q.remove(process_cur)
                 allocateMemory(process_cur.page_list, temp_q)
                 process_cur.page_all_allocated = True
-
-            if not process_cur.scheduled_info:
-                # TODO:如果是第一次使用该进程（scheduled_info为空列表），那么根据DataType，若不是default类型的话，在这执行相应的File/IO操作
-                pass
 
             process_cur.state = State.running
             process_cur.occupied_time += 1

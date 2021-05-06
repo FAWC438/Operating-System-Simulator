@@ -1,7 +1,9 @@
+import FileSystem
 from Process import *
 from ProcessorScheduling import priorityScheduling
 
 if __name__ == '__main__':
+    FileSystem.initFileSystem()
     process_queue = [Process(DataType.Default, 0, 5, 10), Process(DataType.Default, 1, 3, 8),
                      Process(DataType.Default, 3, 6, 12), Process(DataType.Default, 2, 11, 2),
                      Process(DataType.Default, 5, 2, 6)]
