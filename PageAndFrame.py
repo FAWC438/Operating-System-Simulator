@@ -43,7 +43,6 @@ class Page:
         self.mapping_frame = mapping_frame
         self.is_allocated = False
         self.mem_type = mem_type
-        self.process = None  # TODO 页存储的进程pcb
         self.file = None  # TODO 页所存储的文件
         self.IO_device = None  # TODO 页所存储的io设备
         all_page.append(self)

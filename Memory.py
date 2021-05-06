@@ -24,61 +24,72 @@ def allocateMemory(pageList: list, process_q: list):
                 break
         # 没有足够的帧，则发生页错误
         else:
-            # 以下为LRU
-            latest_time = 9999999
-            process_to_replace = None
-            # 先找到可以被置换的，最久没有使用的进程
-            for process in process_q:
-                if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
-                    # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+            pageFault(p, process_q)
 
-                    # 若一个进程所有的页已经被换出，则不必再考虑该进程
-                    for page in process.page_list:
-                        if page.is_allocated:
-                            break
-                    else:
-                        continue
 
-                    if latest_time > process.scheduled_info[-1][0]:
-                        latest_time = process.scheduled_info[-1][0]
-                        process_to_replace = process
-            '''
-            # 以下是opt
-            logest_time = 0
-            process_to_replace = None
-            cur_appearance = 0
-            for process in process_q:
-                if process.scheduled_info != [] and process.scheduled_info[-1][1] == 2:
-                    # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+def pageFault(page_to_replace, process_q):
+    # 以下为LRU
+    process_to_replace = LRU(process_q)
 
-                    # 若一个进程所有的页已经被换出，则不必再考虑该进程
-                    for page in process_to_replace.page_list:
-                        if page.is_allocated:
-                            break
-                    else:
-                        continue
-                    # 找出该进程的当前与下一次被调用的间隔
-                    for i in range(cur_appearance, len(process_q)):
-                        if process_q[i].__process_id == process.__process_id:
-                            if logest_time < (process_q[i].start_time - process.scheduled_info[-1][0]):
-                                logest_time = process_q[i].start_time - process.scheduled_info[-1][0]
-                                process_to_replace = process
-                            break
-                    
-                cur_appearance += 1
-            '''
-            # 进行页面置换
-            replace_success_flag = False
-            if process_to_replace is not None:
-                for page in process_to_replace.page_list:
-                    if page.is_allocated:
-                        page.mapping_frame.mapping_page = p  # 帧映射到新页上
-                        p.mapping_frame = page.mapping_frame  # 新页更新帧的映射关系
-                        p.is_allocated = True
-                        page.mapping_frame = None  # 被置换的页面取消映射关系
-                        page.is_allocated = False
-                        process_to_replace.page_all_allocated = False
-                        replace_success_flag = True
-                        break
-            if not replace_success_flag:
-                print("页置换错误!!!!")
+    # 以下是opt
+    # longest_time = 0
+    # process_to_replace = None
+    # cur_appearance = 0
+    # for process in process_q:
+    #     if process.scheduled_info != [] and process.scheduled_info[-1][1] == 2:
+    #         # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+    #
+    #         # 若一个进程所有的页已经被换出，则不必再考虑该进程
+    #         for page in process_to_replace.page_list:
+    #             if page.is_allocated:
+    #                 break
+    #         else:
+    #             continue
+    #
+    #         # 找出该进程的当前与下一次被调用的间隔
+    #         for i in range(cur_appearance, len(process_q)):
+    #             if process_q[i].get_process_id() == process.get_process_id():
+    #                 if longest_time < (process_q[i].get_start_time() - process.scheduled_info[-1][0]):
+    #                     longest_time = process_q[i].get_start_time() - process.scheduled_info[-1][0]
+    #                     process_to_replace = process
+    #                 break
+    #
+    #     cur_appearance += 1
+
+    # 进行页面置换
+
+    replace_success_flag = False
+    if process_to_replace is not None:
+        for page in process_to_replace.page_list:
+            if page.is_allocated:
+                page.mapping_frame.mapping_page = page_to_replace  # 帧映射到新页上
+                page_to_replace.mapping_frame = page.mapping_frame  # 新页更新帧的映射关系
+                page_to_replace.is_allocated = True
+                page.mapping_frame = None  # 被置换的页面取消映射关系
+                page.is_allocated = False
+                process_to_replace.page_all_allocated = False
+                replace_success_flag = True
+                break
+    if not replace_success_flag:
+        print("页置换错误!!!!")
+
+
+def LRU(process_q):
+    latest_time = 9999999
+    process_to_replace = None
+    # 先找到可以被置换的，最久没有使用的进程
+    for process in process_q:
+        if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
+            # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+
+            # 若一个进程所有的页已经被换出，则不必再考虑该进程
+            for page in process.page_list:
+                if page.is_allocated:
+                    break
+            else:
+                continue
+
+            if latest_time > process.scheduled_info[-1][0]:
+                latest_time = process.scheduled_info[-1][0]
+                process_to_replace = process
+    return process_to_replace

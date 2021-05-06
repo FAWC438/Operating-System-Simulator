@@ -1,4 +1,5 @@
 from Process import *
+from ProcessorScheduling import priorityScheduling
 
 if __name__ == '__main__':
     process_queue = [Process(DataType.Default, 0, 5, 10), Process(DataType.Default, 1, 3, 8),
