@@ -17,6 +17,7 @@ def allocateMemory(pageList: list, process_q: list):
         # 顺序在物理内存中找空的帧来映射
         for f in Memory:
             if not f.is_used:
+                # 实际上每个页的重新映射也是一个缺页中断
                 p.mapping_frame = f
                 f.mapping_page = p
                 p.is_allocated = True
