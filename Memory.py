@@ -33,29 +33,7 @@ def pageFault(page_to_replace, process_q):
     process_to_replace = LRU(process_q)
 
     # 以下是opt
-    # longest_time = 0
-    # process_to_replace = None
-    # cur_appearance = 0
-    # for process in process_q:
-    #     if process.scheduled_info != [] and process.scheduled_info[-1][1] == 2:
-    #         # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
-    #
-    #         # 若一个进程所有的页已经被换出，则不必再考虑该进程
-    #         for page in process_to_replace.page_list:
-    #             if page.is_allocated:
-    #                 break
-    #         else:
-    #             continue
-    #
-    #         # 找出该进程的当前与下一次被调用的间隔
-    #         for i in range(cur_appearance, len(process_q)):
-    #             if process_q[i].get_process_id() == process.get_process_id():
-    #                 if longest_time < (process_q[i].get_start_time() - process.scheduled_info[-1][0]):
-    #                     longest_time = process_q[i].get_start_time() - process.scheduled_info[-1][0]
-    #                     process_to_replace = process
-    #                 break
-    #
-    #     cur_appearance += 1
+#     process_to_replace = OPT(process_q)
 
     # 进行页面置换
 
@@ -92,5 +70,26 @@ def LRU(process_q):
 
             if latest_time > process.scheduled_info[-1][0]:
                 latest_time = process.scheduled_info[-1][0]
+                process_to_replace = process
+    return process_to_replace
+
+def OPT(process_q):
+    max_time = 9999999
+    longest_time = 0
+    process_to_replace = None
+    for process in process_q:
+        if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
+            # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
+
+            # 若一个进程所有的页已经被换出，则不必再考虑该进程
+            for page in process.page_list:
+                if page.is_allocated:
+                    break
+            else:
+                continue
+
+            # 找出该进程的当前与下一次被调用的间隔
+            if longest_time < (max_time - process.scheduled_info[-1][0]):
+                longest_time = max_time - process.scheduled_info[-1][0]
                 process_to_replace = process
     return process_to_replace
