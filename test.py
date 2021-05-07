@@ -12,6 +12,10 @@
 # k = l[:3]
 # for p in k:
 #     print(p.num, end=' ')
-import math
+# import math
+#
+# print(math.ceil(8 / 10))
 
-print(math.ceil(8 / 10))
+s = '/root/aaa/w'
+for i in s.split('/'):
+    print('# ' + i)

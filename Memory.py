@@ -1,6 +1,8 @@
 from PageAndFrame import *
 
-Memory = [Frame(i) for i in range(5)]  # 默认内存有100个帧
+MemorySize = 5
+
+Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧
 
 
 def allocateMemory(pageList: list, process_q: list):
