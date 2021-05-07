@@ -3,6 +3,8 @@ from enum import Enum
 import Tool
 from PageAndFrame import Page
 
+# TODO:进程间同步如何实现？
+
 process_queue = []
 
 
@@ -31,7 +33,6 @@ class ProcessAlgorithm(Enum):
     FCFS = 1
     Priority = 2
     RR = 3
-    # TODO 添加更多算法枚举
 
 
 scheduling_algorithm = ProcessAlgorithm.Priority  # 使用的进程调度算法

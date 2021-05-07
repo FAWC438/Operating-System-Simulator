@@ -88,6 +88,7 @@ def contiguousAllocation(file_to_allocated: UserFile):
 
 
 def writeDiskToTXT():
+    # TODO:把结果输出到TXT？
     pass
 
 
