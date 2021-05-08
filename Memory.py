@@ -1,7 +1,5 @@
 from PageAndFrame import *
 
-# TODO:添加swap out/in
-
 MemorySize = 5
 
 Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧

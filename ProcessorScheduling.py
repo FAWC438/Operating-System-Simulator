@@ -5,6 +5,7 @@ from Process import State
 
 
 # TODO:明确执行队列和等待队列的表现形式
+# TODO:添加swap out/in
 
 
 def FCFS(process_q: PriorityQueue):
@@ -41,12 +42,14 @@ def priorityScheduling(process_q: list, system_clock: int):
     while system_clock < 300:
         over_flag = True  # 所有进程执行完毕退出循环
 
-        # 开始时间小于系统时间的设为ready，否则为waiting
+        # 开始时间小于系统时间的进程进入process_now_queue执行队列
         for p in process_q:
-            if p.state != State.terminated and p.state != State.running:
+            if p.state != State.terminated:
                 over_flag = False
-                p.state = State.waiting
+                # if p.state != State.running:
+                #     p.state = State.ready
         if over_flag:
+            print('finish')
             break
         process_now_queue = [i for i in process_q if
                              i.get_start_time() <= system_clock
@@ -70,7 +73,7 @@ def priorityScheduling(process_q: list, system_clock: int):
                 process_cur.terminate()  # 该方法会将进程变为terminated态
         elif process_cur.state == State.ready:
 
-            if process_running is not None:
+            if process_running is not None and process_running != process_cur:
                 # 若上一个时钟周期是别的进程
                 process_running.state = State.ready
                 process_running.scheduled_info.append((system_clock, 1))

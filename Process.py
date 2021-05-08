@@ -61,7 +61,7 @@ class Process:
         self.occupied_time = 0  # 已经使用的CPU时间，若该时间和last_time相等说明该进程已经执行完毕
         self.scheduled_info = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
         # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕），以便快照计算出CPU使用率等指标
-        self.state = State.waiting  # 进程状态，在使用时注意先变为ready
+        self.state = State.ready  # 进程状态，在使用时注意先变为ready
         self.__page_num = page_num
         self.page_all_allocated = False  # 判断页是否已经分配，请注意！存在进程中部分页已分配，部分未分配的情况，该情况下该字段也为False
         self.page_list = [Page(self.__process_id, self.__process_type) for _ in range(page_num)]  # 进程包含的页
@@ -79,8 +79,7 @@ class Process:
         string = "进程ID：{}".format(self.__process_id) + '\n' + \
                  "进程优先级：{}".format(self.priority) + '\n' + \
                  "进程起始时间：{}".format(self.__start_time) + '\n' + \
-                 "进程持续时间：{}".format(self.__last_time) + '\n' + \
-                 "进程结束时间：{}".format(self.__start_time + self.__last_time) + '\n'
+                 "进程持续时间：{}".format(self.__last_time) + '\n'
         return string
 
     def get_process_id(self):
