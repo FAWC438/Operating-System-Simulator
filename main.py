@@ -2,6 +2,8 @@ import FileSystem
 from Process import *
 from ProcessorScheduling import priorityScheduling
 
+# TODO:优化中断表现形式
+
 if __name__ == '__main__':
     FileSystem.initFileSystem()
     process_queue = [Process(DataType.Default, 0, 5, 10), Process(DataType.Default, 1, 3, 8),

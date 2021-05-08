@@ -18,15 +18,12 @@ class PageAlgorithm(Enum):
     """
     Default = 0
     LRU = 1
-    RANG = 2
-    FIFO = 3
-    LFU = 4
-    OPT = 5
-    # TODO 添加更多算法枚举
+    FIFO = 2
+    OPT = 3
 
 
 all_page = []
-allocation_algorithm = PageAlgorithm.Default  # 使用的页调度算法
+allocation_algorithm = PageAlgorithm.LRU  # 使用的页调度算法
 
 
 class Page:

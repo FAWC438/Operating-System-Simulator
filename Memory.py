@@ -1,5 +1,7 @@
 from PageAndFrame import *
 
+# TODO:添加swap out/in
+
 MemorySize = 5
 
 Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧
@@ -35,7 +37,7 @@ def pageFault(page_to_replace, process_q):
     process_to_replace = LRU(process_q)
 
     # 以下是opt
-#     process_to_replace = OPT(process_q)
+    #     process_to_replace = OPT(process_q)
 
     # 进行页面置换
 
@@ -74,6 +76,7 @@ def LRU(process_q):
                 latest_time = process.scheduled_info[-1][0]
                 process_to_replace = process
     return process_to_replace
+
 
 def OPT(process_q):
     max_time = 9999999

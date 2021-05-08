@@ -4,6 +4,9 @@ from Memory import allocateMemory
 from Process import State
 
 
+# TODO:明确执行队列和等待队列的表现形式
+
+
 def FCFS(process_q: PriorityQueue):
     """
     TODO：进行更新
@@ -33,7 +36,7 @@ def priorityScheduling(process_q: list, system_clock: int):
     """
     process_running = None
     """
-    进程优先级队列
+    进程优先级队列（抢占式）
     """
     while system_clock < 300:
         over_flag = True  # 所有进程执行完毕退出循环
@@ -48,6 +51,7 @@ def priorityScheduling(process_q: list, system_clock: int):
         process_now_queue = [i for i in process_q if
                              i.get_start_time() <= system_clock
                              and i.state != State.terminated]
+        # process_now_queue为执行队列，而process_q对process_now_queue的差集为等待队列
         for p in process_now_queue:
             if p.state != State.running:
                 p.state = State.ready

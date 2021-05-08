@@ -2,6 +2,7 @@
 目录逻辑结构：树形
 目录物理结构：连续形
 TODO:磁盘外部碎片如何处理？
+TODO:磁盘IO添加中断
 """
 import math
 from enum import Enum
