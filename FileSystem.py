@@ -10,6 +10,15 @@ from enum import Enum
 import Tool
 
 
+class FileOperation(Enum):
+    Read = 0
+    Write = 1
+    Create = 2
+    Rename = 3
+    Delete = 4
+    Redirect = 5
+
+
 class FileAuthority(Enum):
     Default = 0
     ReadOnly = 1
@@ -171,7 +180,7 @@ def pathToObj(path: str):
     """
     通过路径找到文件/文件夹
 
-    :param path:文件字符串
+    :param path:路径字符串。如： /root/default_folder_1/test
     :return:文件/文件夹对象。若查找错误，返回0
     """
     global root
