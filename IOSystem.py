@@ -3,11 +3,11 @@ import math
 import Tool
 from FileSystem import UserFile, FileOperation
 
+
 # 采用异步IO。见操作系统课本P439
 
 # TODO:如何使用设备缓冲？
 # TODO:如何通过IO中断来使用设备？
-from Process import Process
 
 
 class Device:
@@ -32,7 +32,7 @@ class Device:
 
 
 class DeviceRequest:
-    def __init__(self, source_process: Process, IO_operation_time: int, target_device: Device, request_content: str,
+    def __init__(self, source_process, IO_operation_time: int, target_device: Device, request_content: str,
                  target_file: UserFile = None,
                  file_operation: FileOperation = None, ):
         """
