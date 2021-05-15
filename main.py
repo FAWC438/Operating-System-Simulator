@@ -1,6 +1,6 @@
 import FileSystem
 from Process import *
-from ProcessorScheduling import priorityScheduling
+from ProcessorScheduling import priorityScheduling, fcfs
 
 # TODO:优化中断表现形式
 
@@ -13,5 +13,6 @@ if __name__ == '__main__':
 
     if scheduling_algorithm == ProcessAlgorithm.Priority:
         # 通过PyCharm的调试可查看输出结果
-        system_clock = priorityScheduling(process_queue, system_clock)
+        # system_clock = priorityScheduling(process_queue, system_clock)
+        system_clock = fcfs(process_queue, system_clock)
     print('OK')

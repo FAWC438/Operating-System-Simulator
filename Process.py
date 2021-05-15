@@ -42,7 +42,7 @@ scheduling_algorithm = ProcessAlgorithm.Priority  # 使用的进程调度算法
 
 class Process:
 
-    def __init__(self, process_type: DataType, start_time, last_time,
+    def __init__(self, process_type: DataType, arrive_time, last_time,
                  IO_operation_time: int = -1,
                  target_device: Device = None,
                  request_content: str = None,
@@ -55,7 +55,7 @@ class Process:
         """
         Process的构造函数展示了进程的PCB，该构造函数用于创建进程
         :param process_type: 进程类型，私有的
-        :param start_time: 进程开始时间，私有的
+        :param arrive_time: 进程开始时间，私有的
         :param last_time: 进程持续时间，私有的
         :param IO_operation_time: 仅对IO操作进程有效。IO操作需要的时间，该值必须小于occupied_time
         :param target_device: 仅对IO操作进程有效。所请求的设备
@@ -69,7 +69,7 @@ class Process:
         """
         self.__process_type = process_type
         self.__process_id = Tool.uniqueNum()
-        self.__start_time = start_time
+        self.__arrive_time = arrive_time
         self.__last_time = last_time
         self.occupied_time = 0  # 已经使用的CPU时间，若该时间和last_time相等说明该进程已经执行完毕
         self.scheduled_info = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
@@ -94,12 +94,12 @@ class Process:
         self.recover = None  # TODO 保护CPU现场，此处保存CPU状态
 
     # def __lt__(self, other):  # operator <，用于FCFS
-    #     return self.__start_time < other.__start_time
+    #     return self.__arrive_time < other.__arrive_time
 
     def __str__(self):
         string = "进程ID：{}".format(self.__process_id) + '\n' + \
                  "进程优先级：{}".format(self.priority) + '\n' + \
-                 "进程起始时间：{}".format(self.__start_time) + '\n' + \
+                 "进程起始时间：{}".format(self.__arrive_time) + '\n' + \
                  "进程持续时间：{}".format(self.__last_time) + '\n'
         return string
 
@@ -109,14 +109,14 @@ class Process:
     def get_process_id(self):
         return self.__process_id
 
-    def get_start_time(self):
-        return self.__start_time
+    def get_arrive_time(self):
+        return self.__arrive_time
 
     def get_last_time(self):
         return self.__last_time
 
-    def set_start_time(self, start_time):
-        self.__start_time = start_time
+    def set_arrive_time(self, arrive_time):
+        self.__arrive_time = arrive_time
 
     def terminate(self):
         """
