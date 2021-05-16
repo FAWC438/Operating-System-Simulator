@@ -91,6 +91,11 @@ def IODiskScheduling(request_queue: list):
 #     pass
 
 def asyncIO():
+    """
+    异步IO。处理机调度的每个时钟周期开始必须调用它
+
+    :return:
+    """
     global device_table
     for d in device_table:
         if d.request_queue:
@@ -98,9 +103,10 @@ def asyncIO():
             if d.name == 'Disk' and len(d.request_queue) > d.request_num:
                 d.request_queue = IODiskScheduling(d.request_queue)
                 d.request_num = len(d.request_queue)
-            d.request_queue[0].occupied_time += 1
+            d.request_queue[0].occupied_time += 1  # 请求运行时间增加一个时钟周期
             if d.request_queue[0].occupied_time >= d.request_queue[0].IO_operation_time:
-                d.request_queue[0].is_finish = True
+                d.request_queue[0].is_finish = True  # 请求中完成位置位
+                d.request_queue[0].source_process.device_request_is_finish = True  # 发出请求的进程中的完成位置位
                 d.request_queue.remove(d.request_queue[0])
 
         else:

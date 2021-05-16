@@ -81,6 +81,7 @@ class Process:
         self.page_list = [Page(self.__process_id, self.__process_type) for _ in range(page_num)]  # 进程包含的页
 
         self.device_request = None  # 进程包含的IO请求
+        self.device_request_is_finish = False  # 用于异步IO，指示IO请求是否完成
         self.IO_expect_return_time = -1  # 异步IO返回结果的绝对时间（一个预测值，是设备请求结束时的系统时间）
 
         if process_type == DataType.IO:
