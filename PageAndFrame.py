@@ -54,8 +54,6 @@ class Page:
     #     return string
 
 
-# TODO:页表
-
 class Frame:
     def __init__(self, mapping_page=None):
         """
