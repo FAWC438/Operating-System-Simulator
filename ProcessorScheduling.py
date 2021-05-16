@@ -5,7 +5,7 @@ from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
 
 swap_queue = []  # 进程swap空间（队列）
-
+is_interupt = True # 嵌套中断
 
 def swapOut(target_process: Process, system_clock: int):
     """
@@ -290,11 +290,10 @@ def priorityScheduling(process_q: list, system_clock: int):
             system_clock += 1
             continue
 
-        # 检测是否有 waiting 进程的IO请求执行完毕
-        # TODO: 有IO请求执行完毕的waiting进程要返回中断进行通知，并且这里没有考虑到IO调度后IO_expect_return_time和实际的差别
-        # for p in process_now_queue:
-        #     if p.state == State.waiting and system_clock >= p.IO_expect_return_time:
-        #         p.state = State.ready
+        # IO 执行完毕，发出中断
+        for p in process_now_queue:
+            if p.state == State.waiting and system_clock >= p.IO_expect_return_time:
+                IO_interupt(p, system_clock)
 
         process_now_queue.sort(key=lambda x: x.priority)
 
@@ -315,13 +314,13 @@ def priorityScheduling(process_q: list, system_clock: int):
                 swapIn(p, system_clock)
 
         # 异步IO。得到优先级最高的进程（优先级数字越低表示优先级越高）
-        process_cur = process_now_queue[0]
+        # process_cur = process_now_queue[0]
 
-        # TODO: 同步IO。找出不是 waiting 的最高优先级进程
-        # for p in process_now_queue:
-        #     if p.state != State.waiting:
-        #         process_cur = p
-        #         break
+        # 同步IO。找出不是 waiting 的最高优先级进程
+        for p in process_now_queue:
+            if p.state != State.waiting:
+                process_cur = p
+                break            
 
         assert isinstance(process_cur, Process)
 
@@ -386,3 +385,15 @@ def IO_request(target_process: Process, system_clock: int):
     target_queue.append(target_process.device_request)
     IO_expect_return_time = system_clock + t + target_process.device_request.IO_operation_time
     return IO_expect_return_time
+
+def IO_interupt(process :Process, system_clock: int):
+    # 保存现场
+    process.recover['system_clock'] = system_clock
+    process.recover['occupied_time'] = process.occupied_time
+    process.recover['state'] = process.state
+
+    # 进程状态变换
+    process.state = State.ready
+
+    # 允许嵌套中断位
+    # is_interupt = False
