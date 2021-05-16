@@ -5,6 +5,16 @@ MemorySize = 5
 Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧
 
 
+def freeMemory(pageList: list):
+    for p in pageList:
+        if not p.is_allocated:
+            continue
+        p.mapping_frame.mapping_page = None
+        p.mapping_frame.is_used = False
+        p.mapping_frame = None
+        p.is_allocated = False
+
+
 def allocateMemory(pageList: list, process_q: list):
     """
     内存分配

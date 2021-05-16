@@ -1,12 +1,48 @@
 from queue import Queue
 
 from IOSystem import asyncIO
-from Memory import allocateMemory
+from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
+
+swap_queue = []
 
 
 # TODO:明确执行队列和等待队列的表现形式
 # TODO:添加swap out/in
+
+def swapOut(target_process: Process, system_clock: int):
+    """
+    进程换出
+    请注意，需要在换出过程中释放内存
+
+    :param target_process: 欲换出的目标进程
+    :param system_clock: 系统时钟
+    :return:
+    """
+    global swap_queue
+    target_process.state = State.HangUp
+    freeMemory(target_process.page_list)
+    target_process.page_all_allocated = False
+    target_process.scheduled_info.append((system_clock, 3))
+
+    swap_queue.append(target_process)
+
+
+def swapIn(target_process: Process, system_clock: int):
+    """
+    进程换入
+    请注意，无需在换入过程中分配内存
+
+    :param target_process:
+    :param system_clock: 系统时钟
+    :return:
+    """
+    global swap_queue
+    target_process.state = State.ready
+    target_process.scheduled_info.append((system_clock, 4))
+    if target_process in swap_queue:
+        swap_queue.remove(target_process)
+
 
 def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
     """
@@ -228,10 +264,10 @@ def priorityScheduling(process_q: list, system_clock: int):
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
     """
+    global swap_queue
+
     process_running = None
-    """
-    进程优先级队列（抢占式）
-    """
+
     while system_clock < 300:
         asyncIO()
 
@@ -265,6 +301,22 @@ def priorityScheduling(process_q: list, system_clock: int):
 
         process_now_queue.sort(key=lambda x: x.priority)
 
+        '''
+        进程swap策略（仅适用于优先级抢占调度）
+        如果执行队列（process_now_queue）中的进程大于3个，则留下优先级最高的3个进程，其它进程swap out
+        而执行队列中的进程不能处于挂起状态（即不能是被换出的进程，如果被换出的进程需要进入执行队列，则进行换入swap in操作）
+        '''
+        if len(process_now_queue) > 3:
+            process_to_swap = process_now_queue[3:]
+            process_now_queue = process_now_queue[:3]
+            for p in process_to_swap:
+                if p not in swap_queue:
+                    swapOut(p, system_clock)
+
+        for p in process_now_queue:
+            if p.state == State.HangUp:
+                swapIn(p, system_clock)
+
         # 异步IO。得到优先级最高的进程（优先级数字越低表示优先级越高）
         process_cur = process_now_queue[0]
 
@@ -296,7 +348,7 @@ def priorityScheduling(process_q: list, system_clock: int):
                 # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
 
             # 有进程在运行，但不是当前进程，需要发生抢占
-            if process_running is not None and process_running != process_cur:
+            if process_running is not None and process_running != process_cur and process_running.state != State.HangUp:
                 # 若上一个时钟周期是别的进程
                 process_running.state = State.ready
                 process_running.scheduled_info.append((system_clock, 1))

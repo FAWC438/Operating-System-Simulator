@@ -15,7 +15,7 @@ class State(Enum):
     running = 1
     waiting = 2
     terminated = 3
-    # TODO 添加swap in/out：进程为IO调度时，执行过程中需要暂停进程执行IO
+    HangUp = 4
 
 
 class DataType(Enum):
@@ -73,7 +73,7 @@ class Process:
         self.__last_time = last_time
         self.occupied_time = 0  # 已经使用的CPU时间，若该时间和last_time相等说明该进程已经执行完毕
         self.scheduled_info = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
-        # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕），以便快照计算出CPU使用率等指标
+        # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕，3为换出swap out，4为换入swap in），以便快照计算出CPU使用率等指标
         self.state = State.ready  # 进程状态，在使用时注意先变为ready
         self.__page_num = page_num
         self.page_all_allocated = False  # 判断页是否已经分配
