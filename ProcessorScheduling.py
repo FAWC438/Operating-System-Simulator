@@ -4,11 +4,8 @@ from IOSystem import asyncIO
 from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
 
-swap_queue = []
+swap_queue = []  # 进程swap空间（队列）
 
-
-# TODO:明确执行队列和等待队列的表现形式
-# TODO:添加swap out/in
 
 def swapOut(target_process: Process, system_clock: int):
     """

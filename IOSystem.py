@@ -58,7 +58,7 @@ class DeviceRequest:
 
 
 Disk = Device('Disk', 8000000, False)
-Printer = Device('Printer', 150000, False)
+Printer = Device('NetworkCard', 300000, False)
 Mouse = Device('Mouse', 15, False)
 KeyBoard = Device('KeyBoard', 10, False)
 device_table = [Disk, Printer, Mouse, KeyBoard]
