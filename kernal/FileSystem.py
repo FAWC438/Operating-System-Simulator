@@ -10,6 +10,15 @@ from enum import Enum
 from kernal import Tool
 
 
+class FileOperation(Enum):
+    Read = 0
+    Write = 1
+    Create = 2
+    Rename = 3
+    Delete = 4
+    Redirect = 5
+
+
 class FileAuthority(Enum):
     Default = 0
     ReadOnly = 1
@@ -451,8 +460,7 @@ def initFileSystem():
 
     :return:
     """
-    global state
-    global root
+    global state, root
     if not state:
         state = True
         default_folder_1 = creatFileOrFolder(True, 'default_folder_1', root, None)
