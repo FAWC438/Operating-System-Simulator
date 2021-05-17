@@ -5,6 +5,7 @@ from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
 
 swap_queue = []  # 进程swap空间（队列）
+is_interrupt = True  # 嵌套中断
 
 
 def swapOut(target_process: Process, system_clock: int):
@@ -254,7 +255,120 @@ def fcfs(process_q: list, system_clock: int):
     return system_clock
 
 
-def priorityScheduling(process_q: list, system_clock: int):
+# 同步 IO
+def prioritySchedulingSync(process_q: list, system_clock: int):
+    """
+    优先级调度
+    :param process_q:进程队列
+    :param system_clock:系统时钟
+    :return:系统时钟（调度结束后）
+    """
+    global swap_queue
+
+    process_running = None
+    process_cur = None
+
+    while system_clock < 300:
+        # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
+        over_flag = True  # 所有进程执行完毕退出循环
+
+        # 开始时间小于系统时间的进程进入process_now_queue执行队列2
+        for p in process_q:
+            if p.state != State.terminated:
+                over_flag = False
+                # if p.state != State.running:
+                #     p.state = State.ready
+        if over_flag:
+            print('finish')
+            break
+
+        # 当前时间可以处理的进程
+        process_now_queue = [i for i in process_q if
+                             i.get_arrive_time() <= system_clock
+                             and i.state != State.terminated]
+
+        if not process_now_queue:
+            system_clock += 1
+            continue
+
+        # IO 执行完毕，发出中断
+        for p in process_now_queue:
+            if p.state == State.waiting and system_clock >= p.IO_expect_return_time:
+                IO_interrupt(p, system_clock)
+
+        process_now_queue.sort(key=lambda x: x.priority)
+
+        '''
+        进程swap策略（仅适用于优先级抢占调度）
+        如果执行队列（process_now_queue）中的进程大于3个，则留下优先级最高的3个进程，其它进程swap out
+        而执行队列中的进程不能处于挂起状态（即不能是被换出的进程，如果被换出的进程需要进入执行队列，则进行换入swap in操作）
+        '''
+        if len(process_now_queue) > 3:
+            process_to_swap = process_now_queue[3:]
+            process_now_queue = process_now_queue[:3]
+            for p in process_to_swap:
+                if p not in swap_queue:
+                    swapOut(p, system_clock)
+
+        for p in process_now_queue:
+            if p.state == State.HangUp:
+                swapIn(p, system_clock)
+
+        # 同步IO。找出不是 waiting 的最高优先级进程
+        for p in process_now_queue:
+            if p.state != State.waiting:
+                process_cur = p
+                break
+
+        assert isinstance(process_cur, Process)
+
+        # 同时只有一个 running 的进程
+        if process_cur.state == State.running:
+            process_cur.occupied_time += 1
+
+            # 进程执行完毕
+            if process_cur.occupied_time >= process_cur.get_last_time():
+                # 每个IO进程的IO时间规定必须小于该进程时间，
+
+                process_cur.scheduled_info.append((system_clock, 2))
+                process_cur.terminate()  # 该方法会将进程变为terminated态
+        elif process_cur.state == State.ready:
+            # 进程发出 IO 请求
+            if process_cur.occupied_time == 0 and process_cur.get_process_type() == DataType.IO:
+                process_cur.IO_expect_return_time = IO_request(process_cur, system_clock)
+                process_cur.state = State.waiting
+
+                # 需要向用户显示异步IO的结果会在什么时候返回
+                # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
+
+            # 有进程在运行，但不是当前进程，需要发生抢占
+            if process_running is not None and process_running != process_cur and process_running.state != State.HangUp:
+                # 若上一个时钟周期是别的进程
+                process_running.state = State.ready
+                process_running.scheduled_info.append((system_clock, 1))
+
+            # 分配内存
+            if not process_cur.page_all_allocated:
+                temp_q = process_q.copy()
+                temp_q.remove(process_cur)
+                allocateMemory(process_cur.page_list, temp_q)
+                process_cur.page_all_allocated = True
+            process_cur.state = State.running
+            process_cur.occupied_time += 1
+            process_cur.scheduled_info.append((system_clock, 0))
+
+        # 当前进程执行完毕
+        if process_cur.state == State.terminated:
+            process_running = None
+        else:
+            process_running = process_cur
+        system_clock += 1
+        # sleep(0.5)
+    return system_clock
+
+
+# 异步 IO
+def prioritySchedulingAsync(process_q: list, system_clock: int):
     """
     优先级调度
     :param process_q:进程队列
@@ -290,12 +404,6 @@ def priorityScheduling(process_q: list, system_clock: int):
             system_clock += 1
             continue
 
-        # 检测是否有 waiting 进程的IO请求执行完毕
-        # TODO: 有IO请求执行完毕的waiting进程要返回中断进行通知，并且这里没有考虑到IO调度后IO_expect_return_time和实际的差别
-        # for p in process_now_queue:
-        #     if p.state == State.waiting and system_clock >= p.IO_expect_return_time:
-        #         p.state = State.ready
-
         process_now_queue.sort(key=lambda x: x.priority)
 
         '''
@@ -317,12 +425,6 @@ def priorityScheduling(process_q: list, system_clock: int):
         # 异步IO。得到优先级最高的进程（优先级数字越低表示优先级越高）
         process_cur = process_now_queue[0]
 
-        # TODO: 同步IO。找出不是 waiting 的最高优先级进程
-        # for p in process_now_queue:
-        #     if p.state != State.waiting:
-        #         process_cur = p
-        #         break
-
         assert isinstance(process_cur, Process)
 
         # 同时只有一个 running 的进程
@@ -338,9 +440,6 @@ def priorityScheduling(process_q: list, system_clock: int):
         elif process_cur.state == State.ready:
             if process_cur.occupied_time == 0 and process_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
                 process_cur.IO_expect_return_time = IO_request(process_cur, system_clock)
-                # TODO: 同步IO时应当转换为waiting
-                # process_cur.state = State.waiting
-
                 # 需要向用户显示异步IO的结果会在什么时候返回
                 # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
 
@@ -385,4 +484,17 @@ def IO_request(target_process: Process, system_clock: int):
             t += r.IO_operation_time
     target_queue.append(target_process.device_request)
     IO_expect_return_time = system_clock + t + target_process.device_request.IO_operation_time
-    return IO_expect_return_time
+    return IO_expect_return_time  # TODO: 时间没法精确计算
+
+
+def IO_interrupt(process: Process, system_clock: int):
+    # 保存现场
+    process.recover['system_clock'] = system_clock
+    process.recover['occupied_time'] = process.occupied_time
+    process.recover['state'] = process.state
+
+    # 进程状态变换
+    process.state = State.ready
+
+    # 允许嵌套中断位
+    # is_interrupt = False

@@ -1,0 +1,11 @@
+button#runButton:hover, button#stopButton:hover
+{
+    filter: brightness(117%);
+    transform: scale(1.13);
+    transition: ease 0.8s;
+}
+
+button#runButton, button#stopButton
+{
+    transition: ease 0.8s;
+}

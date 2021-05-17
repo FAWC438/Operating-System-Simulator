@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>文件系统</title>
+        <link rel="stylesheet" href="/css/style.css"/>
+        <script src="/js/http_ajax.aspnetcdn.com_ajax_jquery_jquery-3.5.1.js"></script>
+        <script src="/js/script.js" defer></script>
+    </head>
+    <body>
+        <!--文件树-->
+        <div class="folder" id="root">
+            文件树
+            <button class="folderTitle" onclick="click_folder($(this))">  root</button>
+
+        </div>
+        <!--文件内容显示区-->
+        <div class="fileInfo">
+            <div class="fileBrief">文件名:.... 文件内容:</div>
+            <textarea class="fileContext" readonly>文件内容示例</textarea>
+            <div class="fileOperationBar">
+                <button class="alterFile">修改文件</button>
+                <button class="saveFile">保存文件</button>
+            </div>
+        </div>
+        <!--文件属性的显示和修改区-->
+        <div class="fileAttribute">
+            <div class="filePath">文件路径: </div>
+            <div class="fileType">文件类型: </div>
+            <button class="deleteButton">删除</button>
+            <input class="reName"/><button class="reNameButton">重命名</button>
+            <input class="newFile"/>
+            <button class="newFileButton">新建文件</button>
+            <button class="newFolderButton">新建文件夹</button>
+        </div>
+    </body>
+</html>

@@ -92,7 +92,7 @@ class Process:
         self.priority = priority  # 仅在优先级调度有用
         self.parent_process_id = parent_process_id
         self.child_process_id = child_process_id
-        self.recover = None  # TODO 保护CPU现场，此处保存CPU状态
+        self.recover = {'system_clock': None, 'occupied_time': None, 'state': None} # 保存现场
 
     # def __lt__(self, other):  # operator <，用于FCFS
     #     return self.__arrive_time < other.__arrive_time

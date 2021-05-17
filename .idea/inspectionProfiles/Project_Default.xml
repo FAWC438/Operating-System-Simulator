@@ -21,6 +21,7 @@
       <option name="ignoredIdentifiers">
         <list>
           <option value="str.*" />
+          <option value="used_size" />
         </list>
       </option>
     </inspection_tool>

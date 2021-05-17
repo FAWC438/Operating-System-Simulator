@@ -2,7 +2,7 @@
 /shelf/
 /workspace.xml
 # 数据源本地存储已忽略文件
-/../../../../:\code\OS_CourseDesign\.idea/dataSources/
+/dataSources/
 /dataSources.local.xml
 # 基于编辑器的 HTTP 客户端请求
 /httpRequests/

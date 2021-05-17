@@ -1,0 +1,230 @@
+/*文件系统CSS*/
+div.folder#root
+{
+    /*文件树区域固定大小*/
+    width: 20vw;
+    height: 50vh;
+    margin: 20px;
+
+    /*超出部分使用滚轮展示*/
+    overflow: scroll;
+    overflow-y: auto;
+}
+
+/*隐藏滚轮(滚轮太丑影响美观性) */
+div.folder#root::-webkit-scrollbar
+{
+    height: 0;
+    width: 0;
+}
+
+div.fileInfo
+{
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    font-size: 26px;
+    padding: 10px 30px 15px 30px;
+    box-shadow: 0 0 8px 4px rgb(221, 177, 156),
+                0 0 48px 6px rgb(255, 197, 187) inset;
+    background-color: rgb(255, 230, 225);
+    width: 20vw;
+    height: 50vh;
+}
+
+/*隐藏滚轮(滚轮太丑影响美观性) */
+div.fileInfo::-webkit-scrollbar
+{
+    height: 0;
+    width: 0;
+}
+
+div.fileAttribute
+{
+    margin: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    font-size: 26px;
+    padding: 10px 30px 15px 30px;
+    box-shadow: 0 0 8px 4px rgb(99, 167, 221),
+                0 0 48px 6px rgb(125, 198, 255) inset;
+    background-color: rgb(160, 220, 255);
+    width: 20vw;
+    height: 50vh;
+
+
+}
+
+
+textarea.fileContext
+{
+    border: none;
+    background: transparent;
+    padding: 0;
+    margin: 25px 0 0 5px;
+    font-size: 23px;
+
+    /*超出部分使用滚轮展示*/
+    overflow: scroll;
+    overflow-y: auto;
+
+    height: 40vh;
+}
+
+textarea.fileContext::-webkit-scrollbar
+{
+    height: 0;
+    width: 0;
+}
+
+
+div.folder
+{
+    display: flex;
+    flex-direction: column;
+    font-size: 24px;
+    padding: 7px 12px 7px 28px;
+    box-shadow: 0 0 8px 4px rgb(221, 167, 99),
+                0 0 48px 6px rgb(255, 198, 125) inset;
+    margin: 10px 10px 10px 10px;
+}
+
+div.file
+{
+    display: flex;
+    font-size: 24px;
+    padding: 7px 12px 7px 28px;
+    box-shadow: 0 0 8px 4px rgb(99, 167, 221),
+                0 0 48px 6px rgb(125, 198, 255) inset;
+    margin: 10px 10px 10px 10px;
+}
+
+div.fileOpened
+{
+    transition: 0.4s;
+    display: flex;
+    font-size: 24px;
+    padding: 7px 12px 7px 28px;
+    box-shadow: 0 0 8px 4px rgb(99, 221, 167),
+                0 0 48px 6px rgb(125, 255, 198) inset;
+    margin: 10px 10px 10px 10px;
+}
+
+button.folderTitle
+{
+    display: inline;
+    font-size: 26px;
+    background-color: inherit;
+    padding: 0;
+    border: none;
+    text-align: left;
+}
+
+button.alterFile
+{
+    box-shadow: 0 0 6px 3px rgb(221, 208, 99),
+                0 0 24px 6px rgb(255, 230, 125) inset;
+    border: none;
+    font-size: 18px;
+    padding: 8px 16px 8px 16px;
+    margin-right: 80px;
+}
+
+button.saveFile
+{
+    border: none;
+    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
+                0 0 24px 6px rgb(125, 198, 255) inset;
+
+    font-size: 18px;
+    padding: 8px 16px 8px 16px;
+    margin-left: 80px;
+}
+
+div.fileOperationBar
+{
+    margin-top: 20px;
+}
+
+div.filePath
+{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+div.fileType
+{
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+button.deleteButton
+{
+    font-size: 16px;
+    padding: 8px 16px 8px 16px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 5px 2px rgb(221, 177, 156),
+                0 0 24px 4px rgb(255, 197, 187) inset;
+    border: none;
+}
+
+button.reNameButton
+{
+    font-size: 16px;
+    padding: 8px 16px 8px 16px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 5px 2px rgb(221, 208, 99),
+                0 0 24px 4px rgb(255, 230, 125) inset;
+    border: none;
+}
+
+button.newFileButton
+{
+    font-size: 16px;
+    padding: 8px 16px 8px 16px;
+    border: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
+                0 0 24px 6px rgb(125, 198, 255) inset;
+}
+
+button.newFolderButton
+{
+    font-size: 16px;
+    padding: 8px 16px 8px 16px;
+    border: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
+    0 0 24px 6px rgb(125, 198, 255) inset;
+}
+
+input.reName
+{
+    font-size: 21px;
+    border: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 2px 1px rgb(120, 120, 120) inset;
+}
+
+input.newFile
+{
+    font-size: 21px;
+    border: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 0 2px 1px rgb(120, 120, 120) inset;
+}
+
+
+body
+{
+    display: flex;
+    flex-direction: row;
+}
