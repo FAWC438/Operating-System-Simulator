@@ -14,3 +14,5 @@ app.config.from_object(Config())
 app.register_blueprint(index)
 
 app.register_blueprint(file)
+
+app.run(threaded=True,debug=True)

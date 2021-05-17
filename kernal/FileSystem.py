@@ -7,16 +7,7 @@ TODO:磁盘IO添加中断
 import math
 from enum import Enum
 
-import Tool
-
-
-class FileOperation(Enum):
-    Read = 0
-    Write = 1
-    Create = 2
-    Rename = 3
-    Delete = 4
-    Redirect = 5
+from kernal import Tool
 
 
 class FileAuthority(Enum):
@@ -44,7 +35,7 @@ class Folder:
 
 
 class UserFile:
-    def __init__(self, file_name: str, parent_folder, data: str, authority: FileAuthority = FileAuthority.Default):
+    def __init__(self, file_name: str, parent_folder, data, authority: FileAuthority = FileAuthority.Default):
         """
         文件数据结构
 
@@ -102,7 +93,7 @@ def writeDiskToTXT():
     pass
 
 
-def creatFileOrFolder(is_folder: bool, name: str, parent_folder, child_nodes=None, data=None):
+def creatFileOrFolder(is_folder: bool, name: str, parent_folder: Folder, data, child_nodes=None):
     """
     创建文件或文件夹
 
@@ -122,6 +113,8 @@ def creatFileOrFolder(is_folder: bool, name: str, parent_folder, child_nodes=Non
                     return -1
 
         new_folder = Folder(name, parent_folder, child_nodes)
+        if not name == 'root':
+            parent_folder.child_nodes.append(new_folder)
         return new_folder
     else:
 
@@ -136,21 +129,9 @@ def creatFileOrFolder(is_folder: bool, name: str, parent_folder, child_nodes=Non
         if new_file.disk_position == -1:
             print('磁盘空间分配错误')  # TODO：异常处理
             return -2
+        print("???", parent_folder)
+        parent_folder.child_nodes.append(new_file)
         return new_file
-
-
-root = creatFileOrFolder(True, 'root', None)
-
-DiskSize = 1000
-
-Disk = [-1 for i in range(DiskSize)]  # 磁盘，存储文件的id
-
-file_table = []  # 文件表，存储所有已经建立的文件
-
-"""
-路径的格式为： /root/aaa/w
-以上路径表示root文件夹下的aaa文件夹的名为w的文件/文件夹
-"""
 
 
 def getPath(is_folder: bool, target_folder: Folder = None, target_file: UserFile = None):
@@ -176,25 +157,103 @@ def getPath(is_folder: bool, target_folder: Folder = None, target_file: UserFile
     return path
 
 
-def pathToObj(path: str):
+state = False
+
+root = creatFileOrFolder(True, 'root', None, None)
+
+DiskSize = 1000
+
+Disk = [-1 for i in range(DiskSize)]  # 磁盘，存储文件的id
+
+file_table = []  # 文件表，存储所有已经建立的文件
+
+"""
+路径的格式为： /root/aaa/w
+以上路径表示root文件夹下的aaa文件夹的名为w的文件/文件夹
+"""
+
+
+def pathToObj(path: str, IR: dict):
     """
     通过路径找到文件/文件夹
 
-    :param path:路径字符串。如： /root/default_folder_1/test
+    :param IR: 直接执行指令
+    :param path:文件字符串
     :return:文件/文件夹对象。若查找错误，返回0
     """
+    path = path.replace(" ", "")
     global root
-    path_node_list = path.split('/')[1:]
+    path_node_list = path.split('/')
+    if path_node_list[0] == "":
+        path_node_list = path_node_list[1:]
+    print(path, path_node_list, IR)
     if len(path_node_list) < 1 or path_node_list[0] != 'root':
         return 0
+    # 从root出发
     parent_node = root
+    # 每次都会更新子节点们
     child_node_names = list(map(str, parent_node.child_nodes))
     for i in range(1, len(path_node_list)):
+        print(path_node_list[i], child_node_names)
         if i == len(path_node_list) - 1:
-            return parent_node.child_nodes[child_node_names.index(path_node_list[i])]
+            # 单纯的查询文件目录树
+            if IR is None:
+                return parent_node.child_nodes[child_node_names.index(path_node_list[i])]
+            elif IR["operator"] == "createFile":
+                return creatFileOrFolder(False, path_node_list[i], parent_node, data=IR['content'])
+            elif IR["operator"] == "createFolder":
+                return creatFileOrFolder(True, path_node_list[i], parent_node, None)
+            else:
+                # 不存在问题
+                if not path_node_list[i] in child_node_names:
+                    return 0
+                target = parent_node.child_nodes[child_node_names.index(path_node_list[i])]
+                # 读文件
+                if IR["operator"] == "readFile":
+                    # 权限不够
+                    if target.authority == FileAuthority.WriteOnly:
+                        return -1
+                    # 读数据
+                    else:
+                        return target.data
+                # 写文件
+                elif IR["operator"] == "writeFile":
+                    # 权限不够
+                    if target.authority == FileAuthority.ReadOnly:
+                        return -1
+                    # 写数据
+                    else:
+                        clearFileInDisk(target)
+                        target.data = IR["content"]
+                        target.size = math.ceil(len(IR["content"]) / 10)
+                        target.disk_position = contiguousAllocation(target)
+                        return 1
+                elif IR["operator"] == "delFile":
+                    if isinstance(target, Folder):
+                        return 0
+                    else:
+                        clearFileInDisk(target)
+                        file_table.remove(target)
+                        target.parent_node.child_nodes.remove(target)
+                        return 1
+                elif IR["operator"] == "renameFile":
+                    if IR["newName"] in child_node_names:
+                        print('新名称在同路径下冲突')
+                        return -1
+                    else:
+                        target.file_name = IR["newName"]
+                        return 1
+                elif IR["operator"] == "renameFolder":
+                    if IR["newName"] in child_node_names:
+                        print('新名称在同路径下冲突')
+                        return -1
+                    else:
+                        target.folder_name = IR["newName"]
+                        return 1
         elif path_node_list[i] in child_node_names:
             parent_node = parent_node.child_nodes[child_node_names.index(path_node_list[i])]
             child_node_names = list(map(str, parent_node.child_nodes))
+            print("!!!", parent_node)
         else:
             return 0
 
@@ -234,6 +293,7 @@ def findObjByName(name: str, parent_node=root):
     :param parent_node:该参数用于递归，对用户是透明的，就是说在调用该函数时不需填写该参数
     :return:None表示没有该对象，否则返回文件系统对象
     """
+
     if not parent_node.child_nodes:
         return None
 
@@ -391,17 +451,29 @@ def initFileSystem():
 
     :return:
     """
+    global state
     global root
+    if not state:
+        state = True
+        default_folder_1 = creatFileOrFolder(True, 'default_folder_1', root, None)
+        default_folder_2 = creatFileOrFolder(True, 'default_folder_2', root, None)
+        default_folder_3 = creatFileOrFolder(True, 'default_folder_3', root, None)
+        test_file = creatFileOrFolder(False, 'test', default_folder_1, data='This is a file for test')
+        root.child_nodes = [default_folder_1, default_folder_2, default_folder_3]
 
-    default_folder_1 = creatFileOrFolder(True, 'default_folder_1', root)
-    default_folder_2 = creatFileOrFolder(True, 'default_folder_2', root)
-    default_folder_3 = creatFileOrFolder(True, 'default_folder_3', root)
-    test_file = creatFileOrFolder(False, 'test', default_folder_1, data='This is a file for test')
-    root.child_nodes = [default_folder_1, default_folder_2, default_folder_3]
-    default_folder_1.child_nodes.append(test_file)
+
+def FileTree(parent_node):
+    # 是目录
+    if isinstance(parent_node, Folder):
+        data = []
+        child_nodes = list(parent_node.child_nodes)
+        for child in child_nodes:
+            data.append(FileTree(child))
+        return {parent_node.__str__(): data}
+    elif isinstance(parent_node, UserFile):
+        return {parent_node.__str__(): 0}
 
 
 if __name__ == '__main__':
     initFileSystem()
-    # print(findObjByName('test').data)
-    print(readFile('test'))
+    print(FileTree(root))
