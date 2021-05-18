@@ -31,9 +31,9 @@ class ProcessAlgorithm(Enum):
     """
     枚举类型，用于指示各种算法的标志数
     """
-    # Default = 0
-    FCFS = 1
-    Priority = 2
+    PrioritySync = 0
+    PriorityAsync = 1
+    FCFS = 2
     RR = 3
 
 
@@ -42,7 +42,10 @@ scheduling_algorithm = ProcessAlgorithm.Priority  # 使用的进程调度算法
 
 class Process:
 
-    def __init__(self, process_type: DataType, arrive_time, last_time,
+    def __init__(self,
+                 process_type: DataType,
+                 arrive_time,
+                 last_time,
                  IO_operation_time: int = -1,
                  target_device: Device = None,
                  request_content: str = None,
@@ -92,7 +95,7 @@ class Process:
         self.priority = priority  # 仅在优先级调度有用
         self.parent_process_id = parent_process_id
         self.child_process_id = child_process_id
-        self.recover = {'system_clock': None, 'occupied_time': None, 'state': None} # 保存现场
+        self.recover = {'system_clock': None, 'occupied_time': None, 'state': None}  # 保存现场
 
     # def __lt__(self, other):  # operator <，用于FCFS
     #     return self.__arrive_time < other.__arrive_time

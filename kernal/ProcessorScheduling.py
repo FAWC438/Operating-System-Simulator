@@ -5,6 +5,7 @@ from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
 
 swap_queue = []  # 进程swap空间（队列）
+process_now_queue = []  # 进程执行队列
 is_interrupt = True  # 嵌套中断
 
 
@@ -50,6 +51,7 @@ def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
     """
+    global process_now_queue
 
     process_running = None
     process_cur = None
@@ -165,6 +167,8 @@ def fcfs(process_q: list, system_clock: int):
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
     """
+    global process_now_queue
+
     process_running = None
     process_cur = None
 
@@ -263,7 +267,7 @@ def prioritySchedulingSync(process_q: list, system_clock: int):
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
     """
-    global swap_queue
+    global swap_queue, process_now_queue
 
     process_running = None
     process_cur = None
@@ -375,7 +379,7 @@ def prioritySchedulingAsync(process_q: list, system_clock: int):
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
     """
-    global swap_queue
+    global swap_queue, process_now_queue
 
     process_running = None
 

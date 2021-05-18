@@ -15,4 +15,4 @@ app.register_blueprint(index)
 
 app.register_blueprint(file)
 
-app.run(threaded=True,debug=True)
+app.run(threaded=True, debug=True)
