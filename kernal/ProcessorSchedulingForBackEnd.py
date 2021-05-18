@@ -6,9 +6,9 @@ from Process import State, DataType, Process
 
 swap_queue = []  # 进程swap空间（队列）
 process_now_queue = []  # 进程执行队列
-process_running = None  # 上一个周期执行的进程
+process_running = None  # 上一个周期执行的进程，无需传给前端
 process_cur = None  # 正在执行的进程
-is_interrupt = True  # 嵌套中断
+is_interrupt = True  # 嵌套中断位
 
 
 def swapOut(target_process: Process, system_clock: int):
