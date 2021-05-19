@@ -1,9 +1,5 @@
 from PageAndFrame import *
 
-MemorySize = 5
-
-Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧
-
 
 def freeMemory(pageList: list):
     for p in pageList:
@@ -15,9 +11,10 @@ def freeMemory(pageList: list):
         p.is_allocated = False
 
 
-def allocateMemory(pageList: list, process_q: list):
+def allocateMemory(pageList: list, process_q: list, Memory: list):
     """
     内存分配
+    :param Memory: 物理内存
     :param pageList:待分配的进程的内存页列表
     :param process_q:进程队列，该队列去除了调用本方法（即申请内存分配）的那个进程
     :return:
@@ -106,3 +103,7 @@ def OPT(process_q):
                 longest_time = max_time - process.scheduled_info[-1][0]
                 process_to_replace = process
     return process_to_replace
+
+
+def initMemory(MemorySize: int = 5):
+    return [Frame(i) for i in range(MemorySize)]  # 默认内存有5个帧

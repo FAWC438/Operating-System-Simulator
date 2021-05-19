@@ -57,13 +57,6 @@ class DeviceRequest:
         self.file_operation = file_operation
 
 
-Disk = Device('Disk', 8000000, False)
-Printer = Device('NetworkCard', 300000, False)
-Mouse = Device('Mouse', 15, False)
-KeyBoard = Device('KeyBoard', 10, False)
-device_table = [Disk, Printer, Mouse, KeyBoard]
-
-
 def IODiskScheduling(request_queue: list):
     """
     磁盘IO调度
@@ -90,13 +83,12 @@ def IODiskScheduling(request_queue: list):
 # def initIOSystem():
 #     pass
 
-def asyncIO():
+def asyncIO(device_table: list):
     """
     异步IO。处理机调度的每个时钟周期开始必须调用它
 
     :return:
     """
-    global device_table
     for d in device_table:
         if d.request_queue:
             d.is_busy = True
@@ -111,3 +103,11 @@ def asyncIO():
 
         else:
             d.is_busy = False
+
+
+def initIO():
+    Disk = Device('Disk', 8000000, False)
+    NetworkCard = Device('NetworkCard', 300000, False)
+    Mouse = Device('Mouse', 15, False)
+    KeyBoard = Device('KeyBoard', 10, False)
+    return [Disk, NetworkCard, Mouse, KeyBoard]

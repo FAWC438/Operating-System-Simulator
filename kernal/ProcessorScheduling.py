@@ -1,7 +1,7 @@
 from queue import Queue
 
-from IOSystem import asyncIO
-from Memory import allocateMemory, freeMemory
+import IOSystem
+import Memory
 from Process import State, DataType, Process
 
 swap_queue = []  # 进程swap空间（队列）
@@ -20,7 +20,7 @@ def swapOut(target_process: Process, system_clock: int):
     """
     global swap_queue
     target_process.state = State.HangUp
-    freeMemory(target_process.page_list)
+    Memory.freeMemory(target_process.page_list)
     target_process.page_all_allocated = False
     target_process.scheduled_info.append((system_clock, 3))
 
@@ -43,9 +43,11 @@ def swapIn(target_process: Process, system_clock: int):
         swap_queue.remove(target_process)
 
 
-def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
+def round_robin(process_q: list, system_clock: int, memory: list, device_table: list, time_slice: int = 2, ):
     """
     时间片轮转算法
+    :param device_table: 设备表
+    :param memory:物理内存
     :param time_slice: 时间片
     :param process_q:进程队列
     :param system_clock:系统时钟
@@ -59,7 +61,7 @@ def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
     in_now_queue = [False for _ in process_q]  # 标记当前进程是否在 process_now_queue 中
     process_now_queue = Queue()
     while system_clock < 300:
-        asyncIO()
+        IOSystem.asyncIO(device_table)
 
         # 如果所有进程都终止，调度结束
         over_flag = True
@@ -136,7 +138,7 @@ def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
             if not process_cur.page_all_allocated:
                 temp_q = process_q.copy()
                 temp_q.remove(process_cur)
-                allocateMemory(process_cur.page_list, temp_q)
+                Memory.allocateMemory(process_cur.page_list, temp_q, memory)
                 process_cur.page_all_allocated = True
 
             # 启动该进程
@@ -160,9 +162,11 @@ def round_robin(process_q: list, system_clock: int, time_slice: int = 2):
     return system_clock
 
 
-def fcfs(process_q: list, system_clock: int):
+def fcfs(process_q: list, system_clock: int, memory: list, device_table: list):
     """
     先进先出算法
+    :param device_table: 设备表
+    :param memory: 物理内存
     :param process_q:进程队列
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
@@ -173,7 +177,7 @@ def fcfs(process_q: list, system_clock: int):
     process_cur = None
 
     while system_clock < 300:
-        asyncIO()
+        IOSystem.asyncIO(device_table)
         over_flag = True
 
         # 如果所有进程都终止，调度结束
@@ -236,7 +240,7 @@ def fcfs(process_q: list, system_clock: int):
             if not process_cur.page_all_allocated:
                 temp_q = process_q.copy()
                 temp_q.remove(process_cur)
-                allocateMemory(process_cur.page_list, temp_q)
+                Memory.allocateMemory(process_cur.page_list, temp_q, memory)
                 process_cur.page_all_allocated = True
 
             # 启动该进程
@@ -260,9 +264,10 @@ def fcfs(process_q: list, system_clock: int):
 
 
 # 同步 IO
-def prioritySchedulingSync(process_q: list, system_clock: int):
+def prioritySchedulingSync(process_q: list, system_clock: int, memory: list):
     """
     优先级调度
+    :param memory: 物理内存
     :param process_q:进程队列
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
@@ -355,7 +360,7 @@ def prioritySchedulingSync(process_q: list, system_clock: int):
             if not process_cur.page_all_allocated:
                 temp_q = process_q.copy()
                 temp_q.remove(process_cur)
-                allocateMemory(process_cur.page_list, temp_q)
+                Memory.allocateMemory(process_cur.page_list, temp_q, memory)
                 process_cur.page_all_allocated = True
             process_cur.state = State.running
             process_cur.occupied_time += 1
@@ -372,9 +377,11 @@ def prioritySchedulingSync(process_q: list, system_clock: int):
 
 
 # 异步 IO
-def prioritySchedulingAsync(process_q: list, system_clock: int):
+def prioritySchedulingAsync(process_q: list, system_clock: int, memory: list, device_table: list):
     """
     优先级调度
+    :param device_table: 设备表
+    :param memory: 物理内存
     :param process_q:进程队列
     :param system_clock:系统时钟
     :return:系统时钟（调度结束后）
@@ -384,7 +391,7 @@ def prioritySchedulingAsync(process_q: list, system_clock: int):
     process_running = None
 
     while system_clock < 300:
-        asyncIO()
+        IOSystem.asyncIO(device_table)
 
         # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
         over_flag = True  # 所有进程执行完毕退出循环
@@ -457,7 +464,7 @@ def prioritySchedulingAsync(process_q: list, system_clock: int):
             if not process_cur.page_all_allocated:
                 temp_q = process_q.copy()
                 temp_q.remove(process_cur)
-                allocateMemory(process_cur.page_list, temp_q)
+                Memory.allocateMemory(process_cur.page_list, temp_q, memory)
                 process_cur.page_all_allocated = True
             process_cur.state = State.running
             process_cur.occupied_time += 1
