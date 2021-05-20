@@ -1,13 +1,15 @@
-from flask import Blueprint, render_template, session, request, redirect, url_for, jsonify
+from flask import Blueprint, session, request, jsonify
 from kernal.FileSystem import *
 
 file = Blueprint('file', __name__)
+state, root, disk, f_table = False, None, [], []
 
 
 # 初始化文件系统
 @file.route('/Initialize', methods=['POST'])
 def init_FileSystem():
-    initFileSystem()
+    global state, root, disk, f_table
+    state, root, disk, f_table = initFileSystem()
     message = FileTree(root)
     return jsonify(message)
 
@@ -16,7 +18,7 @@ def init_FileSystem():
 @file.route('/createFolder', methods=['POST'])
 def create_Folder():
     session['filePath'] = request.form.get('filePath')
-    message = pathToObj(session['filePath'], {"operator": "createFolder"})
+    message = pathToObj(session['filePath'], {"operator": "createFolder"}, f_table, disk, root)
 
     if message == -1:
         # 目录重名
@@ -32,8 +34,8 @@ def create_Folder():
 @file.route('/createFile', methods=['POST'])
 def create_File():
     session['filePath'] = request.form.get('filePath')
-    message = pathToObj(session['filePath'], {"operator": "createFile", "content": ""})
-    print(message)
+    message = pathToObj(session['filePath'], {"operator": "createFile", "content": ""}, f_table, disk, root)
+
     if isinstance(message, int):
         # 同目录文件重名
         if message == -1:
@@ -53,7 +55,7 @@ def create_File():
 @file.route('/readFile', methods=['POST'])
 def read_File():
     session['filePath'] = request.form.get('filePath')
-    message = pathToObj(session['filePath'], {"operator": "readFile"})
+    message = pathToObj(session['filePath'], {"operator": "readFile"}, f_table, disk, root)
     if isinstance(message, int):
         # 文件不存在
         if message == 0:
@@ -74,7 +76,7 @@ def read_File():
 def write_File():
     session['filePath'] = request.form.get('filePath')
     session['content'] = request.form.get('Content')
-    message = pathToObj(session['filePath'], {"operator": "writeFile", "content": session['content']})
+    message = pathToObj(session['filePath'], {"operator": "writeFile", "content": session['content']}, f_table, disk, root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -93,7 +95,7 @@ def write_File():
 @file.route('/delFile', methods=['POST'])
 def del_File():
     session['filePath'] = request.form.get('filePath')
-    message = pathToObj(session['filePath'], {"operator": "delFile"})
+    message = pathToObj(session['filePath'], {"operator": "delFile"}, f_table, disk, root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -109,7 +111,7 @@ def del_File():
 def rename_Folder():
     session['filePath'] = request.form.get('filePath')
     session['newName'] = request.form.get('newName')
-    message = pathToObj(session['filePath'], {"operator": "renameFolder", "newName": session['newName']})
+    message = pathToObj(session['filePath'], {"operator": "renameFolder", "newName": session['newName']}, f_table, disk, root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -129,7 +131,7 @@ def rename_Folder():
 def rename_File():
     session['filePath'] = request.form.get('filePath')
     session['newName'] = request.form.get('newName')
-    message = pathToObj(session['filePath'], {"operator": "renameFile", "newName": session['newName']})
+    message = pathToObj(session['filePath'], {"operator": "renameFile", "newName": session['newName']}, f_table, disk, root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -145,14 +147,14 @@ def rename_File():
 
 
 # 重定向文件
-@file.route('/redirectFile/', methods=['POST'])
-def redirect_File():
-    session['fileName'] = request.form.get('fileName')
-    session['folderName'] = request.form.get('folderName')
-    message = redirectFile(session['fileName'], session['folderName'])
-    if message == 0:
-        return jsonify({'message': 'Failed!',
-                        'data': 'Target Does Not Exist!'})
-    else:
-        return jsonify({'message': 'Success!',
-                        'data': ''})
+# @file.route('/redirectFile/', methods=['POST'])
+# def redirect_File():
+#     session['fileName'] = request.form.get('fileName')
+#     session['folderName'] = request.form.get('folderName')
+#     message = redirectFile(session['fileName'], session['folderName'])
+#     if message == 0:
+#         return jsonify({'message': 'Failed!',
+#                         'data': 'Target Does Not Exist!'})
+#     else:
+#         return jsonify({'message': 'Success!',
+#                         'data': ''})
