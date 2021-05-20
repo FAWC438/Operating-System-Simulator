@@ -1,4 +1,4 @@
-from IOSystem import asyncIO
+from FileSystem import Folder
 from Memory import allocateMemory, freeMemory
 from Process import State, DataType, Process
 from kernal import IOSystem
@@ -39,10 +39,13 @@ def swapIn(target_process: Process, system_clock: int, swap_q: list):
 
 
 def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, proc_cur: Process, memory: list,
-                   device_table: list):
+                   device_table: list, root: Folder, Disk: list, file_table: list):
     """
     先进先出算法
 
+    :param file_table: 文件表
+    :param Disk: 文件系统磁盘
+    :param root: 文件目录根节点
     :param device_table: 设备表
     :param memory: 物理内存
     :param proc_cur:当前进程
@@ -52,7 +55,7 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
     """
 
-    IOSystem.asyncIO(device_table)
+    IOSystem.asyncIO(device_table, root, Disk, file_table)
     over_flag = True
 
     # 如果所有进程都终止，调度结束
@@ -241,10 +244,14 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
                                       proc_running: Process,
                                       proc_cur: Process,
                                       memory: list,
-                                      device_table: list):
+                                      device_table: list,
+                                      root: Folder, Disk: list, file_table: list):
     """
     异步 IO优先级调度
 
+    :param file_table: 文件表
+    :param Disk: 文件系统磁盘
+    :param root: 文件目录根节点
     :param swap_q: 交换队列
     :param device_table: 设备表
     :param memory: 物理内存
@@ -254,7 +261,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     :param system_clock:系统时钟
     :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
     """
-    IOSystem.asyncIO(device_table)
+    IOSystem.asyncIO(device_table, root, Disk, file_table)
 
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环

@@ -22,6 +22,8 @@ if __name__ == '__main__':
                      Process(DataType.Default, 3, 6, priority=12),
                      Process(DataType.IO, 8, 8, IO_operation_time=5, priority=7, target_device=d_table[1],
                              request_content="这是个IO请求"),
+                     Process(DataType.IO, 11, 3, IO_operation_time=2, priority=4, target_device=d_table[0],
+                             request_content="writeFile|test|新内容!"),
                      Process(DataType.Default, 2, 11, priority=2), Process(DataType.Default, 5, 2, priority=6)]
     system_clock = 0
 
@@ -36,6 +38,7 @@ if __name__ == '__main__':
                                                                                                      proc_running=process_running,
                                                                                                      proc_cur=process_cur,
                                                                                                      memory=m)
+            # 这里来整理数据传给前端！！！
         elif scheduling_algorithm == ProcessAlgorithm.PriorityAsync:
             code, process_cur, process_running, process_now_queue = prioritySchedulingAsyncForBackEnd(process_queue,
                                                                                                       system_clock,
@@ -43,13 +46,19 @@ if __name__ == '__main__':
                                                                                                       proc_running=process_running,
                                                                                                       proc_cur=process_cur,
                                                                                                       memory=m,
-                                                                                                      device_table=d_table)
+                                                                                                      device_table=d_table,
+                                                                                                      root=root,
+                                                                                                      Disk=Disk,
+                                                                                                      file_table=file_table)
         elif scheduling_algorithm == ProcessAlgorithm.FCFS:
             code, process_cur, process_running, process_now_queue = fcfsForBackEnd(process_queue, system_clock,
                                                                                    proc_running=process_running,
                                                                                    proc_cur=process_cur,
                                                                                    memory=m,
-                                                                                   device_table=d_table)
+                                                                                   device_table=d_table,
+                                                                                   root=root,
+                                                                                   Disk=Disk,
+                                                                                   file_table=file_table)
         system_clock += 1
 
     # if scheduling_algorithm == ProcessAlgorithm.PrioritySync:
@@ -62,3 +71,4 @@ if __name__ == '__main__':
     # elif scheduling_algorithm == ProcessAlgorithm.RR:
     #     system_clock = round_robin(process_queue, system_clock, m, d_table)
     print('OK')
+    print(FileSystem.readFile('test', root))

@@ -341,6 +341,8 @@ def renameFolder(old_name: str, new_name: str, root: Folder):
 def renameFile(old_name: str, new_name: str, root: Folder):
     """
     重命名文件
+    IO进程content格式：
+    renameFile|旧文件名|新文件名
 
     :param root: 文件系统根节点
     :param old_name:旧名称
@@ -364,6 +366,8 @@ def renameFile(old_name: str, new_name: str, root: Folder):
 def writeFile(file_name: str, content: str, root: Folder, Disk: list):
     """
     写文件内容（原先内容会删除）
+    IO进程content格式：
+    writeFile|文件名|新内容
 
     :param Disk: 文件系统磁盘
     :param root: 文件系统根节点
@@ -414,6 +418,8 @@ def readFile(file_name: str, root: Folder):
 def delFile(file_name: str, file_table: list, root: Folder, Disk: list):
     """
     彻底删除文件，包括磁盘和文件表的记录
+    IO进程content格式：
+    delFile|文件名
 
     :param Disk: 文件系统磁盘
     :param root: 文件系统根节点
@@ -437,6 +443,8 @@ def delFile(file_name: str, file_table: list, root: Folder, Disk: list):
 def redirectFile(file_name: str, target_folder_name: str, root: Folder):
     """
     在不删除文件的情况下重定向文件路径，可以和其他操作组合实现复制和剪切等操作
+    IO进程content格式：
+    redirectFile|文件名|目标文件夹名
 
     :param root: 文件系统根节点
     :param file_name:欲重定向的文件名称
