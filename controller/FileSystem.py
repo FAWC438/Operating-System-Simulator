@@ -88,7 +88,8 @@ def read_File():
 def write_File():
     session['filePath'] = request.form.get('filePath')
     session['content'] = request.form.get('Content')
-    message = pathToObj(session['filePath'], {"operator": "writeFile", "content": session['content']}, f_table, disk, root)
+    message = pathToObj(session['filePath'], {"operator": "writeFile", "content": session['content']}, f_table, disk,
+                        root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -123,7 +124,8 @@ def del_File():
 def rename_Folder():
     session['filePath'] = request.form.get('filePath')
     session['newName'] = request.form.get('newName')
-    message = pathToObj(session['filePath'], {"operator": "renameFolder", "newName": session['newName']}, f_table, disk, root)
+    message = pathToObj(session['filePath'], {"operator": "renameFolder", "newName": session['newName']}, f_table, disk,
+                        root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -143,7 +145,8 @@ def rename_Folder():
 def rename_File():
     session['filePath'] = request.form.get('filePath')
     session['newName'] = request.form.get('newName')
-    message = pathToObj(session['filePath'], {"operator": "renameFile", "newName": session['newName']}, f_table, disk, root)
+    message = pathToObj(session['filePath'], {"operator": "renameFile", "newName": session['newName']}, f_table, disk,
+                        root)
     # 文件不存在
     if message == 0:
         return jsonify({'message': 'Failed!',
@@ -156,7 +159,6 @@ def rename_File():
     else:
         return jsonify({'message': 'Success!',
                         'data': ''})
-
 
 # 重定向文件
 # @file.route('/redirectFile/', methods=['POST'])

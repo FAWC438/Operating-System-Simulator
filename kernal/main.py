@@ -17,6 +17,7 @@ if __name__ == '__main__':
     process_cur = None  # 正在执行的进程
     code = -1
 
+    print('旧文件内容：' + FileSystem.readFile('test', root))
     # 前端该做的
     process_queue = [Process(DataType.Default, 0, 5, priority=10), Process(DataType.Default, 1, 3, priority=8),
                      Process(DataType.Default, 3, 6, priority=12),
@@ -71,4 +72,4 @@ if __name__ == '__main__':
     # elif scheduling_algorithm == ProcessAlgorithm.RR:
     #     system_clock = round_robin(process_queue, system_clock, m, d_table)
     print('OK')
-    print(FileSystem.readFile('test', root))
+    print('新文件内容：' + FileSystem.readFile('test', root))
