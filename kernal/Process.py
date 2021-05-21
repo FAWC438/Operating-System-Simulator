@@ -23,8 +23,7 @@ class DataType(Enum):
     枚举类型
     """
     Default = 0
-    File = 1
-    IO = 2
+    IO = 1
 
 
 class ProcessAlgorithm(Enum):
@@ -37,7 +36,7 @@ class ProcessAlgorithm(Enum):
     RR = 3
 
 
-scheduling_algorithm = ProcessAlgorithm.PriorityAsync  # 使用的进程调度算法
+scheduling_algorithm = ProcessAlgorithm.FCFS  # 使用的进程调度算法
 
 
 class Process:
@@ -76,7 +75,7 @@ class Process:
         self.__last_time = last_time
         self.occupied_time = 0  # 已经使用的CPU时间，若该时间和last_time相等说明该进程已经执行完毕
         self.scheduled_info = []  # 一个二阶列表，每次进程被调度，就往该列表添加调度的时间
-        # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕，3为换出swap out，4为换入swap in），以便快照计算出CPU使用率等指标
+        # （一个二元组，第一个值时间戳，第二个是int，0为被调度，1为被暂停调度，2为执行完毕，3为换出swap out，4为换入swap in，5为阻塞，6为停止阻塞），以便快照计算出CPU使用率等指标
         self.state = State.ready  # 进程状态，在使用时注意先变为ready
         self.__page_num = page_num
         self.page_all_allocated = False  # 判断页是否已经分配

@@ -59,7 +59,8 @@ def pageFault(page_to_replace, process_q):
                 replace_success_flag = True
                 break
     if not replace_success_flag:
-        print("页置换错误!!!!")
+        print("页置换错误!!!!", end=' ')
+        print(process_to_replace)
 
 
 def LRU(process_q):
@@ -67,7 +68,10 @@ def LRU(process_q):
     process_to_replace = None
     # 先找到可以被置换的，最久没有使用的进程
     for process in process_q:
-        if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
+        if process.scheduled_info != [] and \
+                (process.scheduled_info[-1][1] == 1 or
+                 process.scheduled_info[-1][1] == 3 or
+                 process.scheduled_info[-1][1] == 5):
             # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
 
             # 若一个进程所有的页已经被换出，则不必再考虑该进程

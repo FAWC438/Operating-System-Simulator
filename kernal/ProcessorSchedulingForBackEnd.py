@@ -1,9 +1,13 @@
 from queue import Queue
 
 from kernal import IOSystem
+import IOSystem
 from kernal.FileSystem import Folder
+from FileSystem import Folder
 from kernal.Memory import freeMemory, allocateMemory
+from Memory import freeMemory, allocateMemory
 from kernal.Process import Process, State, DataType, scheduling_algorithm, ProcessAlgorithm
+from Process import Process, State, DataType, scheduling_algorithm, ProcessAlgorithm
 
 
 def swapOut(target_process: Process, system_clock: int, swap_q: list):
@@ -54,7 +58,7 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     :param proc_running:上一时钟周期的进程
     :param process_q:进程队列
     :param system_clock:系统时钟
-    :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
+    :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
 
     IOSystem.asyncIO(device_table, root, Disk, file_table)
@@ -64,10 +68,11 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     for p in process_q:
         if p.state != State.terminated:
             over_flag = False
+            break
 
     if over_flag:
         print('finish')  # 这里代表调度结束
-        return 3, proc_cur, proc_running, None
+        return 3, proc_cur, proc_running, None, [root, Disk, file_table]
 
     # 当前时间可以处理的进程放入 process_now_queue
     process_now_q = [i for i in process_q if
@@ -93,7 +98,6 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
 
     # 同时只有一个running的进程
     if proc_cur.state == State.running:
-        proc_cur.occupied_time += 1
 
         # 进程执行完毕
         if proc_cur.occupied_time >= proc_cur.get_last_time():
@@ -103,6 +107,8 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
 
             proc_cur.scheduled_info.append((system_clock, 2))
             proc_cur.terminate()  # 该方法会将进程变为terminated态
+
+        proc_cur.occupied_time += 1
 
     elif proc_cur.state == State.ready:  # 此时可以保证没有进程 running
         if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
@@ -128,23 +134,30 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     else:
         proc_running = proc_cur
 
-    return 1, proc_cur, proc_running, process_now_q
+    return 1, proc_cur, proc_running, process_now_q, [root, Disk, file_table]
     # sleep(0.5)
 
 
 def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q: list, proc_running: Process,
-                                     proc_cur: Process, memory: list):
+                                     proc_cur: Process, memory: list, device_table: list,
+                                     root: Folder, Disk: list, file_table: list):
     """
     同步 IO优先级调度
 
+    :param file_table: 文件表
+    :param Disk: 文件系统磁盘
+    :param root: 文件目录根节点
+    :param device_table: 设备表
     :param swap_q: 交换队列
     :param memory: 物理内存
     :param proc_cur:当前进程
     :param proc_running:上一时钟周期的进程
     :param process_q:进程队列
     :param system_clock:系统时钟
-    :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
+    :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
+
+    root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
 
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环
@@ -153,11 +166,12 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     for p in process_q:
         if p.state != State.terminated:
             over_flag = False
+            break
             # if p.state != State.running:
             #     p.state = State.ready
     if over_flag:
         print('finish')  # 这里代表调度结束
-        return 3, proc_cur, proc_running, None
+        return 3, proc_cur, proc_running, None, [root, Disk, file_table]
 
     # 当前时间可以处理的进程
     process_now_q = [i for i in process_q if
@@ -166,12 +180,13 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
 
     if not process_now_q:
         system_clock += 1
-        return 2, proc_cur, proc_running, process_now_q
+        return 2, proc_cur, proc_running, process_now_q, [root, Disk, file_table]
 
     # IO 执行完毕，发出中断
     for p in process_now_q:
-        if p.state == State.waiting and system_clock >= p.IO_expect_return_time:
-            IO_interrupt(p, system_clock, False)
+        # assert isinstance(p, Process)
+        if p.state == State.waiting and p.device_request.is_finish:
+            interruptSignal(p, system_clock)
 
     process_now_q.sort(key=lambda x: x.priority)
 
@@ -191,6 +206,7 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
         if p.state == State.HangUp:
             swapIn(p, system_clock, swap_q)
 
+    # TODO: 3个剩余进程都是waiting的情况
     # 同步IO。找出不是 waiting 的最高优先级进程
     for p in process_now_q:
         if p.state != State.waiting:
@@ -201,7 +217,6 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
 
     # 同时只有一个 running 的进程
     if proc_cur.state == State.running:
-        proc_cur.occupied_time += 1
 
         # 进程执行完毕
         if proc_cur.occupied_time >= proc_cur.get_last_time():
@@ -209,17 +224,21 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
 
             proc_cur.scheduled_info.append((system_clock, 2))
             proc_cur.terminate()  # 该方法会将进程变为terminated态
+        proc_cur.occupied_time += 1
     elif proc_cur.state == State.ready:
         # 进程发出 IO 请求
-        if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:
+        if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO \
+                and not proc_cur.device_request.is_finish:
             proc_cur.IO_expect_return_time = IO_request(proc_cur, system_clock)
             proc_cur.state = State.waiting
+            proc_cur.scheduled_info.append((system_clock, 5))
 
             # 需要向用户显示异步IO的结果会在什么时候返回
             # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
 
         # 有进程在运行，但不是当前进程，需要发生抢占
-        if proc_running is not None and proc_running != proc_cur and proc_running.state != State.HangUp:
+        if proc_running is not None and proc_running != proc_cur and proc_running.state != State.HangUp \
+                and proc_running.state != State.waiting:
             # 若上一个时钟周期是别的进程
             proc_running.state = State.ready
             proc_running.scheduled_info.append((system_clock, 1))
@@ -230,16 +249,21 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
             temp_q.remove(proc_cur)
             allocateMemory(proc_cur.page_list, temp_q, memory)
             proc_cur.page_all_allocated = True
-        proc_cur.state = State.running
-        proc_cur.occupied_time += 1
-        proc_cur.scheduled_info.append((system_clock, 0))
+
+        if proc_cur.state != State.waiting:
+            proc_cur.state = State.running
+            proc_cur.scheduled_info.append((system_clock, 0))
+            proc_cur.occupied_time += 1
+    # elif proc_cur.state == State.waiting:
+    #     root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
+    #     proc_cur.occupied_time += 1
 
     # 当前进程执行完毕
     if proc_cur.state == State.terminated:
         proc_running = None
     else:
         proc_running = proc_cur
-    return 1, proc_cur, proc_running, process_now_q
+    return 1, proc_cur, proc_running, process_now_q, [root, Disk, file_table]
     # sleep(0.5)
 
 
@@ -262,7 +286,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     :param proc_running:上一时钟周期的进程
     :param process_q:进程队列
     :param system_clock:系统时钟
-    :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
+    :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
     root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
 
@@ -273,6 +297,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     for p in process_q:
         if p.state != State.terminated:
             over_flag = False
+            break
             # if p.state != State.running:
             #     p.state = State.ready
     if over_flag:
@@ -309,11 +334,10 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     # 异步IO。得到优先级最高的进程（优先级数字越低表示优先级越高）
     proc_cur = process_now_queue[0]
 
-    assert isinstance(proc_cur, Process)
+    # assert isinstance(proc_cur, Process)
 
     # 同时只有一个 running 的进程
     if proc_cur.state == State.running:
-        proc_cur.occupied_time += 1
 
         # 进程执行完毕
         if proc_cur.occupied_time >= proc_cur.get_last_time():
@@ -321,6 +345,8 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
 
             proc_cur.scheduled_info.append((system_clock, 2))
             proc_cur.terminate()  # 该方法会将进程变为terminated态
+
+        proc_cur.occupied_time += 1
     elif proc_cur.state == State.ready:
         if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
             proc_cur.IO_expect_return_time = IO_request(proc_cur, system_clock)
@@ -370,7 +396,7 @@ def IO_request(target_process: Process, system_clock: int):
     return IO_expect_return_time  # TODO: 时间没法精确计算
 
 
-def IO_interrupt(process: Process, system_clock: int, is_interrupt: bool):
+def interruptSignal(process: Process, system_clock: int, is_interrupt: bool = False):
     """
     IO中断
 
@@ -386,6 +412,7 @@ def IO_interrupt(process: Process, system_clock: int, is_interrupt: bool):
 
     # 进程状态变换
     process.state = State.ready
+    process.scheduled_info.append((system_clock, 6))
 
     # 允许嵌套中断位
     # is_interrupt = False

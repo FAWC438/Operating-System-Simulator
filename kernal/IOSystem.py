@@ -5,11 +5,13 @@ import math
 # TODO:如何使用设备缓冲？
 # TODO:如何通过IO中断来使用设备？
 from kernal import Tool, FileSystem
+import Tool, FileSystem
 from kernal.FileSystem import UserFile, FileOperation, Folder
+from FileSystem import UserFile, FileOperation, Folder
 
 
 class Device:
-    def __init__(self, device_name: str, transfer_rate: int, is_busy: bool, request_queue=None):
+    def __init__(self, device_name: str, transfer_rate: int, is_busy: bool = False, request_queue=None):
         """
         IO设备对象
 
@@ -118,8 +120,8 @@ def asyncIO(device_table: list, root: Folder, Disk: list, file_table: list):
 
 
 def initIO():
-    Disk = Device('Disk', 8000000, False)
-    NetworkCard = Device('NetworkCard', 300000, False)
-    Mouse = Device('Mouse', 15, False)
-    KeyBoard = Device('KeyBoard', 10, False)
+    Disk = Device('Disk', 8000000)
+    NetworkCard = Device('NetworkCard', 300000)
+    Mouse = Device('Mouse', 15)
+    KeyBoard = Device('KeyBoard', 10)
     return [Disk, NetworkCard, Mouse, KeyBoard]

@@ -3,7 +3,10 @@ from Process import *
 
 # TODO:优化中断表现形式
 from kernal import IOSystem, Memory
+import IOSystem, Memory
 from kernal.ProcessorSchedulingForBackEnd import prioritySchedulingSyncForBackEnd, prioritySchedulingAsyncForBackEnd, \
+    fcfsForBackEnd
+from ProcessorSchedulingForBackEnd import prioritySchedulingSyncForBackEnd, prioritySchedulingAsyncForBackEnd, \
     fcfsForBackEnd
 
 if __name__ == '__main__':
@@ -33,33 +36,46 @@ if __name__ == '__main__':
         # 后端该做的
         if scheduling_algorithm == ProcessAlgorithm.PrioritySync:
             # 后端需要将返回的process_cur, process_running用于下一个时钟周期，swap_q、memory和device_table由于是指针引用，因此无需返回指内部数据也会更改
-            code, process_cur, process_running, process_now_queue = prioritySchedulingSyncForBackEnd(process_queue,
-                                                                                                     system_clock,
-                                                                                                     swap_q=swap_queue,
-                                                                                                     proc_running=process_running,
-                                                                                                     proc_cur=process_cur,
-                                                                                                     memory=m)
-            # 这里来整理数据传给前端！！！
+            code, process_cur, process_running, process_now_queue, f_list = prioritySchedulingSyncForBackEnd(
+                process_queue,
+                system_clock,
+                swap_q=swap_queue,
+                proc_running=process_running,
+                proc_cur=process_cur,
+                memory=m,
+                device_table=d_table,
+                root=root,
+                Disk=Disk,
+                file_table=file_table)
+
+            root, Disk, file_table = f_list
+
         elif scheduling_algorithm == ProcessAlgorithm.PriorityAsync:
-            code, process_cur, process_running, process_now_queue = prioritySchedulingAsyncForBackEnd(process_queue,
-                                                                                                      system_clock,
-                                                                                                      swap_q=swap_queue,
-                                                                                                      proc_running=process_running,
-                                                                                                      proc_cur=process_cur,
-                                                                                                      memory=m,
-                                                                                                      device_table=d_table,
-                                                                                                      root=root,
-                                                                                                      Disk=Disk,
-                                                                                                      file_table=file_table)
+            code, process_cur, process_running, process_now_queue, f_list = prioritySchedulingAsyncForBackEnd(
+                process_queue,
+                system_clock,
+                swap_q=swap_queue,
+                proc_running=process_running,
+                proc_cur=process_cur,
+                memory=m,
+                device_table=d_table,
+                root=root,
+                Disk=Disk,
+                file_table=file_table)
+
+            root, Disk, file_table = f_list
+
         elif scheduling_algorithm == ProcessAlgorithm.FCFS:
-            code, process_cur, process_running, process_now_queue = fcfsForBackEnd(process_queue, system_clock,
-                                                                                   proc_running=process_running,
-                                                                                   proc_cur=process_cur,
-                                                                                   memory=m,
-                                                                                   device_table=d_table,
-                                                                                   root=root,
-                                                                                   Disk=Disk,
-                                                                                   file_table=file_table)
+            code, process_cur, process_running, process_now_queue, f_list = fcfsForBackEnd(process_queue, system_clock,
+                                                                                           proc_running=process_running,
+                                                                                           proc_cur=process_cur,
+                                                                                           memory=m,
+                                                                                           device_table=d_table,
+                                                                                           root=root,
+                                                                                           Disk=Disk,
+                                                                                           file_table=file_table)
+            root, Disk, file_table = f_list
+
         system_clock += 1
 
     # if scheduling_algorithm == ProcessAlgorithm.PrioritySync:
