@@ -37,7 +37,7 @@ def allocateMemory(pageList: list, process_q: list, Memory: list):
             pageFault(p, process_q)
 
 
-def pageFault(page_to_replace, process_q):
+def pageFault(page_to_replace, process_q, EI: bool = False):
     # 以下为LRU
     process_to_replace = LRU(process_q)
 

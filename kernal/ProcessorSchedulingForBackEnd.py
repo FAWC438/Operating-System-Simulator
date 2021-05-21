@@ -1,6 +1,6 @@
 from queue import Queue
 
-from kernal import IOSystem
+from kernal import IOSystem, Memory
 import IOSystem
 from kernal.FileSystem import Folder
 from FileSystem import Folder
@@ -78,6 +78,9 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     process_now_q = [i for i in process_q if
                      i.get_arrive_time() <= system_clock
                      and i.state != State.terminated]
+
+    if not process_now_q:
+        return 2, proc_cur, proc_running, process_now_q, [root, Disk, file_table]
 
     process_now_q.sort(key=lambda x: x.get_arrive_time())  # 按到达时间进行排序
 
@@ -162,7 +165,7 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环
 
-    # 开始时间小于系统时间的进程进入process_now_queue执行队列2
+    # 开始时间小于系统时间的进程进入process_now_queue执行队列
     for p in process_q:
         if p.state != State.terminated:
             over_flag = False
@@ -179,7 +182,6 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
                      and i.state != State.terminated]
 
     if not process_now_q:
-        system_clock += 1
         return 2, proc_cur, proc_running, process_now_q, [root, Disk, file_table]
 
     # IO 执行完毕，发出中断
@@ -189,6 +191,10 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
             interruptSignal(p, system_clock)
 
     process_now_q.sort(key=lambda x: x.priority)
+
+    # 优先级为 0，发出 IO 中断
+    if process_now_q[0].priority == 0:
+        IO_trigger(proc_cur, process_now_q[0], system_clock)
 
     '''
     进程swap策略（仅适用于优先级抢占调度）
@@ -310,7 +316,6 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
                          and i.state != State.terminated]
 
     if not process_now_queue:
-        system_clock += 1
         return 2, proc_cur, proc_running, process_now_queue, [root, Disk, file_table]
 
     process_now_queue.sort(key=lambda x: x.priority)
@@ -350,8 +355,6 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     elif proc_cur.state == State.ready:
         if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
             proc_cur.IO_expect_return_time = IO_request(proc_cur, system_clock)
-            # 需要向用户显示异步IO的结果会在什么时候返回
-            # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
 
         # 有进程在运行，但不是当前进程，需要发生抢占
         if proc_running is not None and proc_running != proc_cur and proc_running.state != State.HangUp:
@@ -378,6 +381,131 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     # sleep(0.5)
 
 
+def roundRobinForBackEnd(process_q: list, process_now_q: list, system_clock: int,
+                         proc_running: Process,
+                         proc_cur: Process,
+                         memory: list,
+                         device_table: list,
+                         root: Folder, Disk: list, file_table: list, time_slice: int = 2):
+    """
+
+    :param process_now_q:
+    :param process_q:
+    :param system_clock:
+    :param proc_running:
+    :param proc_cur:
+    :param memory:
+    :param device_table:
+    :param root:
+    :param Disk:
+    :param file_table:
+    :param time_slice:
+    :return:
+    """
+
+    root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
+
+    # 如果所有进程都终止，调度结束
+    over_flag = True
+    # 开始时间小于系统时间的进程进入process_now_queue执行队列
+    for p in process_q:
+        if p.state != State.terminated:
+            over_flag = False
+            break
+            # if p.state != State.running:
+            #     p.state = State.ready
+    if over_flag:
+        print('finish')  # 这里代表调度结束
+        return 3, proc_cur, proc_running, None, [root, Disk, file_table], time_slice
+
+    # 将未处理过的进程加入队列
+    for p in process_q:
+        if p.get_arrive_time() <= system_clock and p not in process_now_q and p.state != State.terminated:
+            process_now_q.append(p)
+
+    if not process_now_q:
+        return 2, proc_cur, proc_running, process_now_q, [root, Disk, file_table], time_slice
+
+    # 找第一个需要执行的进程
+
+    if time_slice == 0:  # 时间片轮转结束，进行调度
+        process_now_q.remove(proc_cur)
+        if proc_cur.occupied_time >= proc_cur.get_last_time() and proc_cur.state != State.terminated:
+            # if process_cur.get_process_type() == DataType.IO and not process_cur.device_request.is_finish:
+            #     # 如果进程已经执行完毕，但相应的IO请求还未结束
+            #     pass
+
+            proc_cur.scheduled_info.append((system_clock, 2))
+            proc_cur.terminate()
+        elif proc_running is not None:  # 上一个时间片的进程没有执行结束
+            # TODO: 时间片中断
+
+            proc_cur.state = State.ready
+            proc_cur.scheduled_info.append((system_clock, 1))
+            process_now_q.append(proc_cur)
+
+            timer_trigger(proc_cur, system_clock)
+
+    if time_slice <= 0 or proc_running is None:
+        # 上一个时间片的进程执行结束了
+        tmp_slice = 2
+    else:
+        tmp_slice = time_slice
+
+    proc_cur = process_now_q[0]
+
+    # # 没有进程 running，找第一个 ready 执行
+    # else:
+    #     # 找到目前能处理的第一个 ready 的进程
+    #     for _ in range(len(process_now_q)):
+    #         tmp_p = process_now_q[0]
+    #         if tmp_p.state == State.ready:  # 找到
+    #             proc_cur = tmp_p
+    #             break
+    #         process_now_q.append(tmp_p)
+    if proc_cur.state == State.running:
+
+        # 进程执行完毕
+        if proc_cur.occupied_time >= proc_cur.get_last_time():
+            # if process_cur.get_process_type() == DataType.IO and not process_cur.device_request.is_finish:
+            #     # 如果进程已经执行完毕，但相应的IO请求还未结束
+            #     pass
+
+            proc_cur.scheduled_info.append((system_clock, 2))
+            proc_cur.terminate()
+
+        proc_cur.occupied_time += 1
+
+    elif proc_cur.state == State.ready:  # 此时可以保证没有进程 running
+        if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
+            proc_cur.IO_expect_return_time = IO_request(proc_cur, system_clock)
+
+        # # 有进程在运行，但不是当前进程，需要发生抢占
+        # if proc_running is not None and proc_running != proc_cur:
+        #     # 若上一个时钟周期是别的进程
+        #     proc_running.state = State.ready
+        #     proc_running.scheduled_info.append((system_clock, 1))
+
+        # 分配内存
+        if not proc_cur.page_all_allocated:
+            temp_q = process_q.copy()
+            temp_q.remove(proc_cur)
+            allocateMemory(proc_cur.page_list, temp_q, memory)
+            proc_cur.page_all_allocated = True
+        proc_cur.state = State.running
+        proc_cur.occupied_time += 1
+        proc_cur.scheduled_info.append((system_clock, 0))
+
+    # 当前进程执行完毕
+    if proc_cur.state == State.terminated:
+        proc_running = None
+    else:
+        proc_running = proc_cur
+
+    tmp_slice -= 1
+    return 1, proc_cur, proc_running, process_now_q, [root, Disk, file_table], tmp_slice
+
+
 def IO_request(target_process: Process, system_clock: int):
     """
     发送IO请求
@@ -394,6 +522,67 @@ def IO_request(target_process: Process, system_clock: int):
     target_queue.append(target_process.device_request)
     IO_expect_return_time = system_clock + t + target_process.device_request.IO_operation_time
     return IO_expect_return_time  # TODO: 时间没法精确计算
+
+
+# 中断处理程序
+def mouse_interrupt():
+    print('鼠标处理...')
+
+
+def keyboard_interrupt():
+    print('键盘处理...')
+
+
+def timer_interrupt():
+    print('时间片处理...')
+
+
+def get_interrupt_vector(i_type: str = None):
+    interrupt_vector = {'mouse': mouse_interrupt,
+                        'keyboard': keyboard_interrupt,
+                        'timer': timer_interrupt,
+                        'page': Memory.pageFault}
+    interrupt_vector[i_type]()
+
+
+def timer_trigger(targetProcess: Process, system_clock: int, EI: bool = False):
+    """
+    时间片中断
+
+    :param targetProcess:
+    :param system_clock:
+    :param EI:
+    :return:
+    """
+    # 保存现场
+    targetProcess.recover['system_clock'] = system_clock
+    targetProcess.recover['occupied_time'] = targetProcess.occupied_time
+    targetProcess.recover['state'] = targetProcess.state
+
+    get_interrupt_vector('timer')
+
+
+def IO_trigger(proc_cur: Process, proc_io: Process, system_clock: int, EI: bool = False):
+    """
+    IO中断
+
+    :param proc_cur:
+    :param proc_io:
+    :param system_clock:
+    :param EI:
+    :return:
+    """
+    # 保存现场
+    proc_cur.recover['system_clock'] = system_clock
+    proc_cur.recover['occupied_time'] = proc_cur.occupied_time
+    proc_cur.recover['state'] = proc_cur.state
+
+    # 存放中断服务程序的首地址
+    # 查中断向量表，执行中断程序
+    get_interrupt_vector(proc_io.device_request.target_device.name)
+
+    # 允许嵌套中断位
+    # is_interrupt = False
 
 
 def interruptSignal(process: Process, system_clock: int, is_interrupt: bool = False):

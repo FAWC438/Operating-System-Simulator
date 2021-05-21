@@ -5,7 +5,7 @@ from Process import *
 from kernal import IOSystem, Memory
 import IOSystem, Memory
 from kernal.ProcessorSchedulingForBackEnd import prioritySchedulingSyncForBackEnd, prioritySchedulingAsyncForBackEnd, \
-    fcfsForBackEnd
+    fcfsForBackEnd, roundRobinForBackEnd
 from ProcessorSchedulingForBackEnd import prioritySchedulingSyncForBackEnd, prioritySchedulingAsyncForBackEnd, \
     fcfsForBackEnd
 
@@ -19,6 +19,7 @@ if __name__ == '__main__':
     process_running = None  # 上一个周期执行的进程，无需传给前端
     process_cur = None  # 正在执行的进程
     code = -1
+    time_slice = 2
 
     print('旧文件内容：' + FileSystem.readFile('test', root))
     # 前端该做的
@@ -74,6 +75,20 @@ if __name__ == '__main__':
                                                                                            root=root,
                                                                                            Disk=Disk,
                                                                                            file_table=file_table)
+            root, Disk, file_table = f_list
+
+        elif scheduling_algorithm == ProcessAlgorithm.RR:
+            code, process_cur, process_running, process_now_queue, f_list, time_slice = roundRobinForBackEnd(
+                process_queue,
+                process_now_queue,
+                system_clock,
+                proc_running=process_running,
+                proc_cur=process_cur,
+                memory=m,
+                device_table=d_table,
+                root=root,
+                Disk=Disk,
+                file_table=file_table, time_slice=time_slice)
             root, Disk, file_table = f_list
 
         system_clock += 1
