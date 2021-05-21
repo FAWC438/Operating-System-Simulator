@@ -33,7 +33,7 @@ function open_file(elem) {
         success: function(data) {                                                   // 成功提交以后的回调函数
             // 返回的data 就是文件内容(因为是按照图形化界面操作的，所以不会不存在)
             $('.fileBrief').text('文件名: ' + result + '文件内容: ')             // 更新显示的文件名
-            $('.fileContext').val(data['data'])                                     // 更新显示文件内容
+            $('.fileContext').val(data['data'])                                    // 更新显示文件内容
 
         }
     })
@@ -115,17 +115,19 @@ $.ajax({
     data: {'flag': 'ok'},                                                       // 提交的数据
     success: function(data) {                                                   // 成功提交以后的回调函数
         let result = ''
-        for (let obj in data) {                                                 // 自身编号
+        for (let obj in data) {                               // 自身编号
             // root 对象是 data[obj]
             let rootObject = data[obj]
-            for (let members in rootObject) {                                   // 成员对象
+            for (let members in rootObject) {                       // 成员对象
                 let membersObject = rootObject[members]
-                for (let values in membersObject) {                             // 成员对象编号
+                for (let values in membersObject) {                 // 成员对象编号
                     // membersObject[values]  成员对象值
-                    if (membersObject[values] instanceof Array) {               // 该成员是数组(文件夹)
+                    if (membersObject[values] instanceof Array) {   // 该成员是数组(文件夹)
+                        // alert('array ' + values)
                         result += create_folder_node(membersObject[values], values)
+                        //alert(membersObject[values].length)
                     }
-                    else {                                                      // 文件
+                    else {                                          // 文件
                         // alert('number ' + values)
                         result += create_file_node(values)
                     }
@@ -142,7 +144,7 @@ function get_file_path(elem) {
     let pathArray = new Array()
 
     // 获取文件名
-    if (elem.hasClass('folderTitle'))                                   // 文件夹
+    if (elem.hasClass('folderTitle'))              // 文件夹
         ;
     else
         pathArray[i++] = elem.text().trim().replace(/\s/g, '')// 文件
@@ -151,10 +153,10 @@ function get_file_path(elem) {
     let parent = elem.parent()
     while (!parent.hasClass('fileSystem')) {
         if (parent.hasClass('folder')) {  // 是文件夹
-            pathArray[i++] = parent.children('button').text().replace(/[+-]\s/g, '')    // 过滤空白字符和+-提示符号
+            pathArray[i++] = parent.children('button').text().replace(/[+-]\s/g, '')   // 过滤空白字符和+-提示符号
         }
         else { // 是文件
-            pathArray[i++] = parent.text().trim().replace(/\s/g, '')    // 过滤空白字符
+            pathArray[i++] = parent.text().trim().replace(/\s/g, '')                        // 过滤空白字符
 
         }
         parent = parent.parent()
@@ -278,11 +280,11 @@ $('.newFileButton').click(function () {
         // 参数 创建的文件的完整路径+文件名
         data: {'filePath': $('.filePath').text().replace("文件路径:", "") + '/' + fileName},
         success: function (data) {
-            if ('Success!' === data['message']) {       // 允许创建 更新前端
+            if ('Success!' === data['message']) {      // 允许创建 更新前端
                 current_element.parent().append('<div class="file" onclick="open_file($(this))">' + fileName + '</div>')
                 alert('文件创建成功')
             }
-            else                                        // 重名或其他因素导致不能修改
+            else                     // 重名或其他因素导致不能修改
                 alert('文件创建失败')
         }
     })
@@ -304,12 +306,12 @@ $('.newFolderButton').click(function () {
         // 参数 创建的文件的完整路径+文件名
         data: {'filePath': $('.filePath').text().replace("文件路径:", "") + '/' + folderName},
         success: function (data) {
-            if ('Success!' === data['message']) {       // 允许创建 更新前端
+            if ('Success!' === data['message']) {      // 允许创建 更新前端
                 current_element.parent().append('<div class="folder"><button class="folderTitle" ' +
                     'onclick="click_folder($(this))">' + '  ' + folderName + '</button></div>')
                 alert('文件夹创建成功')
             }
-            else                                        // 重名或其他因素导致不能修改
+            else                     // 重名或其他因素导致不能修改
                 alert('文件夹创建失败')
         }
     })
@@ -330,15 +332,12 @@ function update_system_clock() {
 
             // 更新进程队列
             update_process_queue(data['queueInfo'])
-
-            // 更新内存概要信息
-            update_memory_brief(data['memoryInfo'])
         }
     })
 
     // 循环执行
     system_clock = system_clock + 1
-    setTimeout("update_system_clock()", 5000)
+    setTimeout("update_system_clock()", 1000)
 }
 
 update_system_clock()
@@ -422,42 +421,6 @@ function show_process_detail(elem) {
 
             $('.processScene').html(info3)
 
-        }
-    })
-}
-
-// 更新内存概要
-function update_memory_brief(data){
-
-    $('.memorySize').text('内存大小: ' + data['MemorySize'])
-    $('.memoryAlgorithm').text('置换算法: ' + data['Algorithm'])
-
-    // 依次判断五个元素
-    for(let i in data['MemoryTable']) {
-        if (1 === data['MemoryTable'][i]) {      // 占用
-            $('.memoryQueue').find('span').eq(i).attr('class', 'occupiedMemoryBlock')
-        }
-        else {
-            $('.memoryQueue').find('span').eq(i).attr('class', 'memoryBlock')
-        }
-    }
-}
-
-// 显示内存详细信息
-function show_memory_detail(elem) {
-    let memoryID = elem.text()
-
-    $.ajax({
-        type: 'POST',
-        url: '/getMemoryDetailInfo',
-        // 参数内存id(注意是字符串)
-        data: {'frameID': memoryID},
-        success: function (data) {
-            $('.memoryIdTitle').text('编号: ' + memoryID)
-            $('.frameId').text('帧Id: ' + data['frameId'])
-            $('.memoryState').text('占用状态: ' + data['isUsed'])
-            $('.memoryPageId').text('页Id: ' + data['pageId'])
-            $('.memoryProcessId').text('进程Id: ' + data['pcbId'])
         }
     })
 }

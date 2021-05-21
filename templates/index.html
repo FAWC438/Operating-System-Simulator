@@ -2,36 +2,148 @@
 <html lang="en">
     <head>
         <meta charset="UTF-8">
-        <title>文件系统</title>
+        <title>操作系统前端</title>
         <link rel="stylesheet" href="/css/style.css"/>
         <script src="/js/http_ajax.aspnetcdn.com_ajax_jquery_jquery-3.5.1.js"></script>
         <script src="/js/script.js" defer></script>
     </head>
-    <body>
-        <!--文件树-->
-        <div class="folder" id="root">
-            文件树
-            <button class="folderTitle" onclick="click_folder($(this))">  root</button>
 
+    <body>
+        <!--标题部分-->
+        <div class="header">
+            <span class="systemClock">系统时钟: </span>
+            <span id="interruptButtonBar">
+                <button id="pageFault">缺页中断</button>
+                <button id="ioInterruption" disabled>I O 中断</button>
+            </span>
         </div>
-        <!--文件内容显示区-->
-        <div class="fileInfo">
-            <div class="fileBrief">文件名:.... 文件内容:</div>
-            <textarea class="fileContext" readonly>文件内容示例</textarea>
-            <div class="fileOperationBar">
-                <button class="alterFile">修改文件</button>
-                <button class="saveFile">保存文件</button>
+        <!--主体部分-->
+        <div class="body">
+            <!--文件系统-->
+            <div class="fileSystem">
+                <!--文件树-->
+                <div class="folder" id="root">
+                    文件树
+                    <button class="folderTitle" onclick="click_folder($(this))">- root</button>
+
+                </div>
+                <!--文件属性的显示和修改区-->
+                <div class="fileAttribute">
+                    <div class="filePath">文件路径: </div>
+                    <div class="fileType">文件类型: </div>
+                    <button class="deleteButton">删除</button>
+                    <div><input class="reName"/><button class="reNameButton">重命名</button></div>
+                    <div><input class="newFile"/><button class="newFileButton">新建文件</button><button class="newFolderButton">新建文件夹</button>
+                    </div>
+                </div>
+                <!--文件内容显示区-->
+                <div class="fileInfo">
+                    <div class="fileBrief">文件名:.... 文件内容:</div>
+                    <textarea class="fileContext" readonly>文件内容示例</textarea>
+                    <div class="fileOperationBar">
+                        <button class="alterFile">修改文件</button>
+                        <button class="saveFile">保存文件</button>
+                    </div>
+                </div>
             </div>
-        </div>
-        <!--文件属性的显示和修改区-->
-        <div class="fileAttribute">
-            <div class="filePath">文件路径: </div>
-            <div class="fileType">文件类型: </div>
-            <button class="deleteButton">删除</button>
-            <input class="reName"/><button class="reNameButton">重命名</button>
-            <input class="newFile"/>
-            <button class="newFileButton">新建文件</button>
-            <button class="newFolderButton">新建文件夹</button>
+
+            <!--进程，内存 外设-->
+            <div class="Others">
+                <!--进程系统-->
+                <div class="processSystem">
+                    <!--进程队列-->
+                    <div class="processQueue">进程队列
+                        <div class="waitingQueue">等待队列
+                            <div class="processBlock">312830</div>
+                        </div>
+                        <div class="swapQueue">交换队列</div>
+                        <div class="uncreatedQueue">未建队列</div>
+                        <div class="runningQueue">执行队列</div>
+                        <div class="destroyedQueue">销毁队列</div>
+                    </div>
+                    <!--进程信息展示块-->
+                    <div class="processInfo">
+                        进程详细信息
+                        <div class="processId">进程id: </div>
+                        <div class="processType">进程类型: </div>
+                        <div class="processArriveTime">到达时间: </div>
+                        <div class="processDuration">持续时间: </div>
+                        <div class="processState">进程状态: </div>
+                        <div class="processPriority">进程优先级: </div>
+                        <div class="processSchedule">进程调度信息: </div>
+                        <div class="processPageNumber">进程所占页数: </div>
+                        <div class="processPagesId">进程页编号集合</div>
+                        <div class="deviceRequest">设备请求信息</div>
+                        <div class="deviceRequestBit">设备请求完成位</div>
+                        <div class="processScene">设备现场信息</div>
+                    </div>
+                </div>
+                <!--外设和内存-->
+                <div class="ioAndMemory">
+                    <div class="ioSystem">外设系统
+                        <div class="netWorkCard">
+                            <div class="name">网卡</div>
+                            <div class="state">状态:空闲</div>
+                            <div class="newWorkCardQueue">
+                                <div class="ioRequest">
+                                    <div>文件:</div>
+                                    <div>操作:</div>
+                                    <div>地址:</div>
+                                    <div>长度:</div>
+                                </div>
+                                <div class="ioRequest">
+                                    <div>文件:</div>
+                                    <div>操作:</div>
+                                    <div>地址:</div>
+                                    <div>长度:</div>
+                                </div>
+                                <div class="ioRequest">
+                                    <div>文件:</div>
+                                    <div>操作:</div>
+                                    <div>地址:</div>
+                                    <div>长度:</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="disk">
+                            <div class="name">磁盘</div>
+                            <div class="state">状态:空闲</div>
+                            <div class="diskQueue"></div>
+                        </div>
+                        <div class="mouse">
+                            <div class="name">鼠标</div>
+                            <div class="state">状态:空闲</div>
+                            <div class="mouseQueue"></div>
+                        </div>
+                        <div class="keyBoard">
+                            <div class="name">键盘</div>
+                            <div class="state">状态:空闲</div>
+                            <div class="keyBoardQueue"></div>
+                        </div>
+                    </div>
+                    <div class="memorySystem">
+                        <div class="memoryBrief">内存系统
+                            <div class="memorySize">内存大小: </div>
+                            <div class="memoryAlgorithm">置换算法:</div>
+                            <div class="memoryQueue">
+                                <span class="memoryBlock" onclick="show_memory_detail($(this))">1</span>
+                                <span class="memoryBlock" onclick="show_memory_detail($(this))">2</span>
+                                <span class="memoryBlock" onclick="show_memory_detail($(this))">3</span>
+                                <span class="memoryBlock" onclick="show_memory_detail($(this))">4</span>
+                                <span class="memoryBlock" onclick="show_memory_detail($(this))">5</span>
+                            </div>
+                        </div>
+                        <div class="memoryDetail">内存详情
+                            <div class="memoryIdTitle">编号: 4</div>
+                            <div class="frameId">帧id: 113813</div>
+                            <div class="memoryState">占用状态: 未占用</div>
+                            <div class="memoryPageId">页ID: </div>
+                            <div class="memoryProcessId">进程ID: </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
     </body>
 </html>

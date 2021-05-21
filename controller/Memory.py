@@ -7,14 +7,24 @@ Algorithm = "LRU"
 Memory = [Frame(i) for i in range(MemorySize)]  # 默认内存有100个帧
 
 
+def getMemory():
+    global Memory
+    return Memory
+
+
+def setMemory(memo: list):
+    global Memory
+    Memory = memo
+
+
 def MemoryInfo():
     global Memory, MemorySize, Algorithm
     memoList = []
     for f in Memory:
         if f.is_used:
-            memoList.append(1)
+            memoList.append({f.frame_id: 1})
         else:
-            memoList.append(0)
+            memoList.append({f.frame_id: 0})
     message = {"MemorySize": MemorySize,
                "Algorithm": Algorithm,
                "MemoryTable": memoList}

@@ -141,7 +141,6 @@ def creatFileOrFolder(is_folder: bool, name: str, parent_folder: Folder, file_ta
         if new_file.disk_position == -1:
             print('磁盘空间分配错误')  # TODO：异常处理
             return -2
-        print("???", parent_folder)
         parent_folder.child_nodes.append(new_file)
         return new_file
 
@@ -190,7 +189,6 @@ def pathToObj(path: str, IR: dict, file_table: list, Disk: list, root: Folder):
     path_node_list = path.split('/')
     if path_node_list[0] == "":
         path_node_list = path_node_list[1:]
-    print(path, path_node_list, IR)
     if len(path_node_list) < 1 or path_node_list[0] != 'root':
         return 0
     # 从root出发
@@ -198,7 +196,6 @@ def pathToObj(path: str, IR: dict, file_table: list, Disk: list, root: Folder):
     # 每次都会更新子节点们
     child_node_names = list(map(str, parent_node.child_nodes))
     for i in range(1, len(path_node_list)):
-        print(path_node_list[i], child_node_names)
         if i == len(path_node_list) - 1:
             # 单纯的查询文件目录树
             if IR is None:
@@ -259,7 +256,6 @@ def pathToObj(path: str, IR: dict, file_table: list, Disk: list, root: Folder):
         elif path_node_list[i] in child_node_names:
             parent_node = parent_node.child_nodes[child_node_names.index(path_node_list[i])]
             child_node_names = list(map(str, parent_node.child_nodes))
-            print("!!!", parent_node)
         else:
             return 0
 
@@ -341,8 +337,6 @@ def renameFolder(old_name: str, new_name: str, root: Folder):
 def renameFile(old_name: str, new_name: str, root: Folder):
     """
     重命名文件
-    IO进程content格式：
-    renameFile|旧文件名|新文件名
 
     :param root: 文件系统根节点
     :param old_name:旧名称
@@ -366,8 +360,6 @@ def renameFile(old_name: str, new_name: str, root: Folder):
 def writeFile(file_name: str, content: str, root: Folder, Disk: list):
     """
     写文件内容（原先内容会删除）
-    IO进程content格式：
-    writeFile|文件名|新内容
 
     :param Disk: 文件系统磁盘
     :param root: 文件系统根节点
@@ -418,8 +410,6 @@ def readFile(file_name: str, root: Folder):
 def delFile(file_name: str, file_table: list, root: Folder, Disk: list):
     """
     彻底删除文件，包括磁盘和文件表的记录
-    IO进程content格式：
-    delFile|文件名
 
     :param Disk: 文件系统磁盘
     :param root: 文件系统根节点
@@ -443,8 +433,6 @@ def delFile(file_name: str, file_table: list, root: Folder, Disk: list):
 def redirectFile(file_name: str, target_folder_name: str, root: Folder):
     """
     在不删除文件的情况下重定向文件路径，可以和其他操作组合实现复制和剪切等操作
-    IO进程content格式：
-    redirectFile|文件名|目标文件夹名
 
     :param root: 文件系统根节点
     :param file_name:欲重定向的文件名称
@@ -507,8 +495,3 @@ def FileTree(parent_node):
         return {parent_node.__str__(): data}
     elif isinstance(parent_node, UserFile):
         return {parent_node.__str__(): 0}
-
-
-# if __name__ == '__main__':
-#     s, root, Disk, file_table = initFileSystem()
-#     print(FileTree(root))

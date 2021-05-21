@@ -1,14 +1,11 @@
 import math
 
-import Tool
-import FileSystem
-from FileSystem import UserFile, FileOperation, Folder
-
-
 # 采用异步IO。见操作系统课本P439
 
 # TODO:如何使用设备缓冲？
 # TODO:如何通过IO中断来使用设备？
+from kernal import Tool, FileSystem
+from kernal.FileSystem import UserFile, FileOperation, Folder
 
 
 class Device:
@@ -81,13 +78,9 @@ def IODiskScheduling(request_queue: list):
     return scheduled_request_queue
 
 
-# def initIOSystem():
-#     pass
-
 def asyncIO(device_table: list, root: Folder, Disk: list, file_table: list):
     """
     异步IO。处理机调度的每个时钟周期开始必须调用它
-
     :param device_table: 设备表
     :param root: 文件目录根节点
     :param Disk: 文件系统磁盘
@@ -121,6 +114,7 @@ def asyncIO(device_table: list, root: Folder, Disk: list, file_table: list):
 
         else:
             d.is_busy = False
+    return root, Disk, file_table
 
 
 def initIO():

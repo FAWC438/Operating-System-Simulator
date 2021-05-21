@@ -5,6 +5,18 @@ file = Blueprint('file', __name__)
 state, root, disk, f_table = False, None, [], []
 
 
+def getAttr():
+    global root, disk, f_table
+    return [root, disk, f_table]
+
+
+def setAttr(fileSysAttr):
+    global root, disk, f_table
+    root = fileSysAttr[0]
+    disk = fileSysAttr[1]
+    f_table = fileSysAttr[2]
+
+
 # 初始化文件系统
 @file.route('/Initialize', methods=['POST'])
 def init_FileSystem():

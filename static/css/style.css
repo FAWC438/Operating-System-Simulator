@@ -1,10 +1,19 @@
 /*文件系统CSS*/
+
+div.fileSystem
+{
+    display: flex;
+    flex-direction: column;
+}
+
 div.folder#root
 {
+    font-size: 20px;
+
     /*文件树区域固定大小*/
-    width: 20vw;
-    height: 50vh;
-    margin: 20px;
+    width: 22vw;
+    height: 20vh;
+    margin: 10px;
 
     /*超出部分使用滚轮展示*/
     overflow: scroll;
@@ -12,7 +21,7 @@ div.folder#root
 }
 
 /*隐藏滚轮(滚轮太丑影响美观性) */
-div.folder#root::-webkit-scrollbar
+*::-webkit-scrollbar
 {
     height: 0;
     width: 0;
@@ -20,16 +29,16 @@ div.folder#root::-webkit-scrollbar
 
 div.fileInfo
 {
-    margin: 20px;
+    margin: 10px;
     display: flex;
     flex-direction: column;
     font-size: 26px;
     padding: 10px 30px 15px 30px;
-    box-shadow: 0 0 8px 4px rgb(221, 177, 156),
-                0 0 48px 6px rgb(255, 197, 187) inset;
-    background-color: rgb(255, 230, 225);
+    box-shadow: 0 0 8px 4px rgb(230, 230, 230),
+                0 0 48px 6px rgb(240, 240, 240) inset;
+    background-color: rgb(250, 250, 250);
     width: 20vw;
-    height: 50vh;
+    height: 39vh;
 }
 
 /*隐藏滚轮(滚轮太丑影响美观性) */
@@ -41,18 +50,18 @@ div.fileInfo::-webkit-scrollbar
 
 div.fileAttribute
 {
-    margin: 20px;
+    margin: 10px;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    font-size: 26px;
+    font-size: 20px;
     padding: 10px 30px 15px 30px;
-    box-shadow: 0 0 8px 4px rgb(99, 167, 221),
-                0 0 48px 6px rgb(125, 198, 255) inset;
-    background-color: rgb(160, 220, 255);
+    box-shadow: 0 0 8px 4px rgb(230, 230, 230),
+                0 0 48px 6px rgb(240, 240, 240) inset;
+    background-color: rgb(250, 250, 250);
     width: 20vw;
-    height: 50vh;
+    height: 20vh;
 
 
 }
@@ -63,8 +72,8 @@ textarea.fileContext
     border: none;
     background: transparent;
     padding: 0;
-    margin: 25px 0 0 5px;
-    font-size: 23px;
+    margin: 10px 0 0 5px;
+    font-size: 18px;
 
     /*超出部分使用滚轮展示*/
     overflow: scroll;
@@ -80,67 +89,64 @@ textarea.fileContext::-webkit-scrollbar
 }
 
 
-div.folder
+div.folder, div.file, div.fileOpened
 {
     display: flex;
     flex-direction: column;
-    font-size: 24px;
-    padding: 7px 12px 7px 28px;
-    box-shadow: 0 0 8px 4px rgb(221, 167, 99),
-                0 0 48px 6px rgb(255, 198, 125) inset;
-    margin: 10px 10px 10px 10px;
+    padding: 5px 9px 5px 16px;
+    font-size: 16px;
+    margin: 5px 5px 5px 5px;
+}
+
+div.folder
+{
+    box-shadow: 0 0 8px 4px rgb(221, 221, 221),
+                0 0 48px 6px rgb(255, 255, 255) inset;
 }
 
 div.file
 {
-    display: flex;
-    font-size: 24px;
-    padding: 7px 12px 7px 28px;
-    box-shadow: 0 0 8px 4px rgb(99, 167, 221),
-                0 0 48px 6px rgb(125, 198, 255) inset;
-    margin: 10px 10px 10px 10px;
-}
-
-div.fileOpened
-{
-    transition: 0.4s;
-    display: flex;
-    font-size: 24px;
-    padding: 7px 12px 7px 28px;
-    box-shadow: 0 0 8px 4px rgb(99, 221, 167),
-                0 0 48px 6px rgb(125, 255, 198) inset;
-    margin: 10px 10px 10px 10px;
+    box-shadow: 0 0 8px 4px rgb(221, 221, 221),
+                0 0 48px 6px rgb(255, 255, 255) inset;
 }
 
 button.folderTitle
 {
     display: inline;
-    font-size: 26px;
+    font-size: 18px;
     background-color: inherit;
     padding: 0;
     border: none;
     text-align: left;
 }
 
+
+div.fileOpened
+{
+    transition: 0.4s;
+    box-shadow: 0 0 8px 4px rgb(211, 221, 211),
+                0 0 48px 6px rgb(255, 255, 255) inset;
+}
+
+button.saveFile, button.alterFile
+{
+    border: none;
+    font-size: 16px;
+    padding: 8px 16px 8px 16px;
+}
+
 button.alterFile
 {
-    box-shadow: 0 0 6px 3px rgb(221, 208, 99),
-                0 0 24px 6px rgb(255, 230, 125) inset;
-    border: none;
-    font-size: 18px;
-    padding: 8px 16px 8px 16px;
-    margin-right: 80px;
+    margin-right: 90px;
+    box-shadow: 0 0 6px 3px rgb(221, 221, 221),
+                0 0 24px 6px rgb(255, 255, 255) inset;
 }
 
 button.saveFile
 {
-    border: none;
-    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
-                0 0 24px 6px rgb(125, 198, 255) inset;
-
-    font-size: 18px;
-    padding: 8px 16px 8px 16px;
-    margin-left: 80px;
+    margin-left: 90px;
+    box-shadow: 0 0 6px 3px rgb(167, 167, 167),
+        0 0 24px 6px rgb(198, 198, 198) inset;
 }
 
 div.fileOperationBar
@@ -148,83 +154,363 @@ div.fileOperationBar
     margin-top: 20px;
 }
 
+div.filePath, div.fileType
+{
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
 div.filePath
 {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    font-size: 19px;
 }
 
 div.fileType
 {
-    margin-top: 10px;
-    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+
+button.deleteButton, button.reNameButton, button.newFileButton, button.newFolderButton
+{
+    font-size: 13px;
+    padding: 6px 12px 6px 12px;
+    border: none;
+    margin: 8px;
 }
 
 button.deleteButton
 {
-    font-size: 16px;
-    padding: 8px 16px 8px 16px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 5px 2px rgb(221, 177, 156),
-                0 0 24px 4px rgb(255, 197, 187) inset;
-    border: none;
+    box-shadow: 0 0 5px 2px rgb(221, 221, 221),
+                0 0 24px 4px rgb(255, 255, 255) inset;
 }
 
 button.reNameButton
 {
-    font-size: 16px;
-    padding: 8px 16px 8px 16px;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 5px 2px rgb(221, 208, 99),
-                0 0 24px 4px rgb(255, 230, 125) inset;
-    border: none;
+    box-shadow: 0 0 5px 2px rgb(221, 221, 221),
+                0 0 24px 4px rgb(255, 255, 255) inset;
+    padding-left: 71px;
+    padding-right: 71px;
 }
 
-button.newFileButton
+button.newFileButton, button.newFolderButton
 {
-    font-size: 16px;
-    padding: 8px 16px 8px 16px;
-    border: none;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
-                0 0 24px 6px rgb(125, 198, 255) inset;
+    box-shadow: 0 0 6px 3px rgb(167, 167, 167),
+                0 0 24px 6px rgb(198, 198, 198) inset;
 }
 
-button.newFolderButton
+input.reName, input.newFile
 {
     font-size: 16px;
-    padding: 8px 16px 8px 16px;
-    border: none;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 6px 3px rgb(99, 167, 221),
-    0 0 24px 6px rgb(125, 198, 255) inset;
-}
-
-input.reName
-{
-    font-size: 21px;
     border: none;
     margin-top: 10px;
     margin-bottom: 10px;
     box-shadow: 0 0 2px 1px rgb(120, 120, 120) inset;
 }
 
-input.newFile
+div.fileBrief
 {
-    font-size: 21px;
-    border: none;
-    margin-top: 10px;
-    margin-bottom: 10px;
-    box-shadow: 0 0 2px 1px rgb(120, 120, 120) inset;
+    font-size: 20px;
 }
-
 
 body
 {
     display: flex;
+    flex-direction: column;
+}
+
+div.header
+{
+    margin: 10px;
+    box-shadow: 0 0 5px 2px rgb(180, 180, 180),
+                0 0 24px 4px rgb(200, 200, 200) inset;
+    background-color: rgb(230, 230, 230);
+
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+
+}
+
+span.systemClock
+{
+    margin: 5px;
+    text-align: center;
+    font-size: 23px;
+
+}
+
+div.processQueue
+{
+    padding: 20px;
+    font-size: 26px;
+    margin: 10px;
+    display: flex;
+    flex-direction: row;
+
+    box-shadow: 0 0 5px 2px rgb(230, 230, 230),
+                0 0 24px 4px rgb(240, 240, 240) inset;
+    background-color: rgb(250, 250, 250);
+
+    width: 47vw;
+    height: 39vh;
+
+}
+
+div.waitingQueue, div.swapQueue, div.runningQueue, div.uncreatedQueue, div.destroyedQueue
+{
+    padding: 8px 15px 8px 15px;
+    margin-left: 20px;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    flex-direction: column;
+
+    overflow-x: auto;
+
+    box-shadow: 0 0 5px 2px rgb(220, 220, 220),
+                0 0 24px 4px rgb(230, 230, 230) inset;
+    background-color: rgb(240, 240, 240);
+}
+
+
+div.body
+{
+    display: flex;
     flex-direction: row;
 }
+
+div.processBlock
+{
+    border-radius: 8px;
+    padding: 5px 12px 5px 14px;
+    font-size: 20px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+
+    box-shadow: 0 0 5px 2px rgb(198, 198, 198),
+                0 0 24px 4px rgb(248, 248, 248) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+div.Others
+{
+    display: flex;
+    flex-direction: column;
+}
+
+div.processSystem
+{
+    display: flex;
+    flex-direction: row;
+}
+
+div.processInfo
+{
+    font-size: 23px;
+    width: 22.45vw;
+    margin: 10px;
+    padding: 10px 0px 10px 25px;
+    box-shadow: 0 0 5px 2px rgb(233, 233, 233),
+                0 0 24px 4px rgb(244, 244, 244) inset;
+    background-color: rgb(255, 255, 255);
+    display: flex;
+    flex-direction: column;
+    overflow-x: auto;
+}
+
+div.processInfo > div
+{
+    margin-left: 30px;
+    font-size: 18px;
+    margin-bottom: 3px;
+    margin-top: 3px;
+}
+
+button#ioInterruption, button#pageFault
+{
+    border: none;
+    padding: 5px 10px 5px 10px;
+    font-size: 18px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+button#ioInterruption:valid
+{
+    box-shadow: 0 0 6px 3px rgb(167, 167, 167),
+                0 0 24px 6px rgb(198, 198, 198) inset;
+    background-color: rgb(211, 211, 211);
+
+}
+
+button#pageFault:valid
+{
+    box-shadow: 0 0 5px 2px rgb(160, 160, 160),
+                0 0 24px 4px rgb(190, 190, 190) inset;
+    background-color: rgb(200, 200, 200);
+}
+
+button#ioInterruption:invalid, button#pageFault:invalid
+{
+    box-shadow: 0 0 5px 2px rgb(140, 140, 140),
+                0 0 24px 4px rgb(180, 180, 180) inset;
+    background-color: rgb(200, 200, 200);
+}
+
+span#interruptButtonBar
+{
+    margin-left: 100px;
+}
+
+div.ioAndMemory
+{
+    display: flex;
+    flex-direction: row;
+}
+
+div.ioSystem
+{
+    padding: 20px;
+    font-size: 26px;
+    margin: 10px;
+    width: 47vw;
+    height: 40vh;
+    box-shadow: 0 0 5px 2px rgb(220, 220, 220),
+                0 0 24px 4px rgb(230, 230, 230) inset;
+    background-color: rgb(240, 240, 240);
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+div.disk, div.netWorkCard, div.keyBoard, div.mouse
+{
+    width: 7.9vw;
+    padding: 12px;
+    margin: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    overflow-x: auto;
+
+    box-shadow: 0 0 5px 2px rgb(220, 220, 220),
+                0 0 24px 4px rgb(230, 230, 230) inset;
+    background-color: rgb(240, 240, 240);
+}
+
+div.name
+{
+    font-size: 26px;
+}
+
+div.state
+{
+    font-size: 22px;
+}
+
+div.memoryBrief
+{
+    font-size: 22px;
+    margin: 10px;
+    padding: 10px;
+    width: 22.45vw;
+    height: 20vh;
+
+    box-shadow: 0 0 6px 3px rgb(200, 200, 200),
+                0 0 24px 6px rgb(220, 220, 220) inset;
+    background-color: rgb(240, 240, 240);
+
+    display: flex;
+    flex-direction: column;
+}
+
+div.memoryDetail
+{
+    font-size: 22px;
+    margin-left: 10px;
+    margin-top: 20px;
+    padding: 10px;
+    width: 22.45vw;
+    height: 18vh;
+
+    box-shadow: 0 0 5px 2px rgb(232, 232, 232),
+                0 0 24px 4px rgb(248, 248, 248) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+div.memorySize, div.memoryAlgorithm
+{
+    margin-left: 40px;
+    font-size: 20px;
+}
+
+div.memoryQueue
+{
+    margin-top: 20px;
+    margin-left: 20px;
+    display: flex;
+    flex-direction: row;
+    justify-items: center;
+}
+
+span.memoryBlock
+{
+    margin: 10px;
+    padding: 10px 20px 10px 20px;
+    font-size: 31px;
+
+    box-shadow: 0 0 6px 3px rgb(170, 170, 170),
+                0 0 24px 6px rgb(205, 205, 205) inset;
+    background-color: rgb(225, 225, 225);
+}
+
+span.occupiedMemoryBlock
+{
+    margin: 10px;
+    padding: 10px 20px 10px 20px;
+    font-size: 31px;
+
+    box-shadow: 0 0 6px 3px rgb(210, 210, 210),
+                0 0 24px 6px rgb(235, 235, 235) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+
+
+
+div.memoryDetail
+{
+    font-size: 24px;
+    margin-left: 10px;
+    margin-top: 20px;
+    padding: 10px;
+    width: 22.45vw;
+    height: 18vh;
+
+    box-shadow: 0 0 5px 2px rgb(232, 232, 232),
+                0 0 24px 4px rgb(248, 248, 248) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+div.memoryIdTitle, div.memoryState, div.memoryPageId, div.memoryProcessId
+{
+    font-size: 20px;
+    margin-left: 40px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+}
+
+
+div.ioRequest
+{
+    font-size: 18px;
+    padding: 10px;
+    margin: 10px;
+    box-shadow: 0 0 6px 3px rgb(221, 221, 221),
+                0 0 24px 4px rgb(234, 234, 234) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+
