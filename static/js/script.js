@@ -10,6 +10,10 @@ let current_focused_file_type = 0
 // 当前聚焦的文件的选择器形式元素
 let current_element = $('#root')
 
+let time_out_id = 0
+
+let code = 0
+
 // 打开文件 elem 是选择器元素
 function open_file(elem) {
     // 将其他打开的文件样式设为关闭的
@@ -33,7 +37,7 @@ function open_file(elem) {
         success: function(data) {                                                   // 成功提交以后的回调函数
             // 返回的data 就是文件内容(因为是按照图形化界面操作的，所以不会不存在)
             $('.fileBrief').text('文件名: ' + result + '文件内容: ')             // 更新显示的文件名
-            $('.fileContext').val(data['data'])                                     // 更新显示文件内容
+            $('.fileContext').val(data['data'])                                    // 更新显示文件内容
 
         }
     })
@@ -108,53 +112,26 @@ function change_focused_file(file_path, type) {
     $('.deleteButton').show()
 }
 
-// 初始化 发送 初始化文件树请求 并 根据获取的数据初始化文件树
-$.ajax({
-    type: 'POST',                                                               // 提交方式POST ajax 中 有6种提交方式
-    url: '/Initialize',                                                         // 提交目标地址
-    data: {'flag': 'ok'},                                                       // 提交的数据
-    success: function(data) {                                                   // 成功提交以后的回调函数
-        let result = ''
-        for (let obj in data) {                                                 // 自身编号
-            // root 对象是 data[obj]
-            let rootObject = data[obj]
-            for (let members in rootObject) {                                   // 成员对象
-                let membersObject = rootObject[members]
-                for (let values in membersObject) {                             // 成员对象编号
-                    // membersObject[values]  成员对象值
-                    if (membersObject[values] instanceof Array) {               // 该成员是数组(文件夹)
-                        result += create_folder_node(membersObject[values], values)
-                    }
-                    else {                                                      // 文件
-                        // alert('number ' + values)
-                        result += create_file_node(values)
-                    }
-                }
-            }
-        }
-        $('#root').append(result)
-    }
-})
-
 // 获取 文件或是 文件夹路径
 function get_file_path(elem) {
     let i = 0
-    let pathArray = new Array()
+    let pathArray = []
 
     // 获取文件名
-    if (elem.hasClass('folderTitle'))                                   // 文件夹
+    if (elem.hasClass('folderTitle')){                                  // 文件夹
         ;
-    else
-        pathArray[i++] = elem.text().trim().replace(/\s/g, '')// 文件
-
+    }
+    else{                                                                       //文件
+        pathArray[i++] = elem.text().trim().replace(/\s/g, '')
+    }
 
     let parent = elem.parent()
     while (!parent.hasClass('fileSystem')) {
         if (parent.hasClass('folder')) {  // 是文件夹
-            pathArray[i++] = parent.children('button').text().replace(/[+-]\s/g, '')    // 过滤空白字符和+-提示符号
+            pathArray[i++] = parent.children('button').text().replace(/[+-]\s/g, '')   // 过滤空白字符和+-提示符号
         }
         else { // 是文件
-            pathArray[i++] = parent.text().trim().replace(/\s/g, '')    // 过滤空白字符
+            pathArray[i++] = parent.text().trim().replace(/\s/g, '')                        // 过滤空白字符
 
         }
         parent = parent.parent()
@@ -169,8 +146,7 @@ function get_file_path(elem) {
 
 // 递归创建文件树的文件节点
 function create_file_node(fileName) {
-    let result = '<div class="file" onclick="open_file($(this))">' + fileName + '</div>'
-    return result
+    return '<div class="file" onclick="open_file($(this))">' + fileName + '</div>'
 }
 
 // 递归创建文件树的文件夹节点
@@ -237,6 +213,11 @@ $('.deleteButton').click(function () {
 // 重命名
 $('.reNameButton').click(function () {
     let newName = $('.reName').val()
+    if ('' === newName)
+    {
+        alert('重命名不能为空')
+        return
+    }
 
     // 发送 ajax信息 告知后端
     $.ajax({
@@ -278,11 +259,11 @@ $('.newFileButton').click(function () {
         // 参数 创建的文件的完整路径+文件名
         data: {'filePath': $('.filePath').text().replace("文件路径:", "") + '/' + fileName},
         success: function (data) {
-            if ('Success!' === data['message']) {       // 允许创建 更新前端
+            if ('Success!' === data['message']) {      // 允许创建 更新前端
                 current_element.parent().append('<div class="file" onclick="open_file($(this))">' + fileName + '</div>')
                 alert('文件创建成功')
             }
-            else                                        // 重名或其他因素导致不能修改
+            else                     // 重名或其他因素导致不能修改
                 alert('文件创建失败')
         }
     })
@@ -304,12 +285,12 @@ $('.newFolderButton').click(function () {
         // 参数 创建的文件的完整路径+文件名
         data: {'filePath': $('.filePath').text().replace("文件路径:", "") + '/' + folderName},
         success: function (data) {
-            if ('Success!' === data['message']) {       // 允许创建 更新前端
+            if ('Success!' === data['message']) {      // 允许创建 更新前端
                 current_element.parent().append('<div class="folder"><button class="folderTitle" ' +
                     'onclick="click_folder($(this))">' + '  ' + folderName + '</button></div>')
                 alert('文件夹创建成功')
             }
-            else                                        // 重名或其他因素导致不能修改
+            else                     // 重名或其他因素导致不能修改
                 alert('文件夹创建失败')
         }
     })
@@ -328,20 +309,50 @@ function update_system_clock() {
             // 更新系统时间
             $('.systemClock').text('系统时间: ' + system_clock)
 
+            code = data['code']
+
             // 更新进程队列
             update_process_queue(data['queueInfo'])
 
             // 更新内存概要信息
             update_memory_brief(data['memoryInfo'])
+
+            // 更新外设信息
+            update_device_brief(data['deviceInfo'])
+
+            // 更新三个按钮
+            if (1 == data['interrupt'][0])
+                $('#ioInterruption').removeAttr('disabled')
+            else if (0 == data['interrupt'][0])
+                $('#ioInterruption').attr('disabled', 'disabled')
+
+            if (1 == data['interrupt'][1])
+                $('#timeInterruption').removeAttr('disabled')
+            else if (0 == data['interrupt'][1])
+                $('#timeInterruption').attr('disabled', 'disabled')
+
+            if (1 == data['interrupt'][2])
+                $('#pageFault').removeAttr('disabled')
+            else if (0 == data['interrupt'][2])
+                $('#pageFault').attr('disabled', 'disabled')
+
         }
     })
-
     // 循环执行
     system_clock = system_clock + 1
-    setTimeout("update_system_clock()", 5000)
-}
+    console.log(code)
+    if (3 == code){
+        alert("执行完成！")
+        $('#start').removeAttr('disabled');
+    }
+    else{
+        time_out_id = setTimeout("update_system_clock()", 1000);
+    }
 
-update_system_clock()
+
+
+
+}
 
 function update_process_queue(data) {
     // 清空当前队列信息
@@ -367,10 +378,8 @@ function update_process_queue(data) {
 
 // 获得进程详细信息 getProcessDetailInfo
 // 获得内存详细信息 getMemoryDetailInfo
-
 // 点击显示详细信息 -- elem 是选择器元素
 function show_process_detail(elem) {
-
     let processID = elem.text()
 
     // 发送ajax请求进程的详细信息
@@ -400,7 +409,6 @@ function show_process_detail(elem) {
                 temp_str += '}, '
             }
             $('.processSchedule').text(info1)
-
 
             // 解析所有页码
             let array2 = data['processPagesId']
@@ -434,11 +442,12 @@ function update_memory_brief(data){
 
     // 依次判断五个元素
     for(let i in data['MemoryTable']) {
-        if (1 === data['MemoryTable'][i]) {      // 占用
-            $('.memoryQueue').find('span').eq(i).attr('class', 'occupiedMemoryBlock')
-        }
-        else {
-            $('.memoryQueue').find('span').eq(i).attr('class', 'memoryBlock')
+        for (let j in data['MemoryTable'][i]) {
+            if (1 == data['MemoryTable'][i][j]) {      // 占用
+                $('.memoryQueue').find('span').eq(i).attr('class', 'occupiedMemoryBlock')
+            } else {
+                $('.memoryQueue').find('span').eq(i).attr('class', 'memoryBlock')
+            }
         }
     }
 }
@@ -455,12 +464,157 @@ function show_memory_detail(elem) {
         success: function (data) {
             $('.memoryIdTitle').text('编号: ' + memoryID)
             $('.frameId').text('帧Id: ' + data['frameId'])
-            $('.memoryState').text('占用状态: ' + data['isUsed'])
-            $('.memoryPageId').text('页Id: ' + data['pageId'])
-            $('.memoryProcessId').text('进程Id: ' + data['pcbId'])
+            $('.memoryState').text('占用状态: ' + data['memoryState'])
+            $('.memoryPageId').text('页Id: ' + data['memoryPageId'])
+            $('.memoryProcessId').text('进程Id: ' + data['memoryProcessId'])
         }
     })
 }
+
+// 启动系统，开始更新系统时钟
+function start() {
+    // 初始化文件树
+    // 初始化 发送 初始化文件树请求 并 根据获取的数据初始化文件树
+    if (0 === system_clock) {
+        let type = $('#c0').val()
+
+        $.ajax({
+            type: 'POST',                                                               // 提交方式POST ajax 中 有6种提交方式
+            url: '/Initialize',                                                         // 提交目标地址
+            data: {'flag': 'ok',
+                   'type': type},                                                       // 提交的数据
+            success: function (data) {                                                   // 成功提交以后的回调函数
+                let result = ''
+                for (let obj in data) {                               // 自身编号
+                    // root 对象是 data[obj]
+                    let rootObject = data[obj]
+                    for (let members in rootObject) {                       // 成员对象
+                        let membersObject = rootObject[members]
+                        for (let values in membersObject) {                 // 成员对象编号
+                            // membersObject[values]  成员对象值
+                            if (membersObject[values] instanceof Array) {   // 该成员是数组(文件夹)
+                                // alert('array ' + values)
+                                result += create_folder_node(membersObject[values], values)
+                                //alert(membersObject[values].length)
+                            } else {                                          // 文件
+                                // alert('number ' + values)
+                                result += create_file_node(values)
+                            }
+                        }
+                    }
+                }
+                $('#root').append(result)
+            }
+        })
+
+        if ('0' === type)
+            $('#c0').val('PS')
+        else if ('1' === type)
+            $('#c0').val('PA')
+        else if ('2' === type)
+            $('#c0').val('FCFS')
+        else
+            $('#c0').val('RR')
+    }
+
+    // 开始周期性发送时钟信号
+    code = 0
+    update_system_clock()
+
+    // 禁用启动按钮
+    $('#start').attr('disabled', 'disabled')
+    $('#c0').attr('disabled', 'disabled')
+
+
+}
+
+$('#start').click(function () {
+    start()
+})
+
+
+$('.createProcess').click(function () {
+    create_process()
+})
+
+function create_process() {
+    let type = $('.createProcessType').val()
+    let arrive = $('.createProcessArriveTime').val()
+    let duration = $('.createProcessDuration').val()
+    let ioDuration = $('.createProcessIODuration').val()
+    let targetDevice = $('.createProcessTargetDevice').val()
+    let ioRequest = $('.createProcessIORequestInfo').val()
+    let processPriority = $('.createProcessPriority').val()
+    let processOccupiedPage = $('.createProcessOccupiedPage').val()
+
+    // 发送请求
+    $.ajax({
+        type: 'POST',                                                               // 提交方式POST ajax 中 有6种提交方式
+        url: '/createProcess',                                                      // 提交目标地址
+        data: {'processType': type, 'startTime': arrive, 'lastTime': duration, 'ioDuration': ioDuration,
+            'targetDevice': targetDevice, 'ioRequest': ioRequest, 'processPriority': processPriority,
+            'processOccupiedPage': processOccupiedPage},                            // 提交的数据
+        success: function(data) {                                                   // 成功提交以后的回调函数
+            alert('创建成功')
+            $('.createProcessType').val('')
+            $('.createProcessArriveTime').val('')
+            $('.createProcessDuration').val('')
+            $('.createProcessIODuration').val('')
+            $('.createProcessTargetDevice').val('')
+            $('.createProcessIORequestInfo').val('')
+            $('.createProcessPriority').val('')
+            $('.createProcessOccupiedPage').val('')
+        }
+    })
+}
+
+
+function update_device_brief(data) {
+    // 清空
+    $('.ioSystem').text('')
+    let result = '设备系统'
+    // 遍历
+    for (let i in data) {
+        // 设备对象
+        let temp = '<div class="device"><div>' + i + '</div>'
+        temp += '<div>缓冲区大小：' + data[i]['buffer'] + '</div>'
+        temp += '<div>是否占用:'  + data[i]['isBusy'] + '</div>'
+        temp += '<div>转换率:' + data[i]['transferRate'] + '</div>'
+        for (let j in data[i]['requestQueue']) {
+            let obj = data[i]['requestQueue'][j]
+            let temp2 = '<div class="request"><div>资源进程:' + obj['sourceProcess'] + '</div>'
+            temp2 += '<div>占用时间' + obj['occupiedTime'] + '</div>'
+            temp2 += '<div>IO操作时间' + obj['ioOperationTime'] + '</div>'
+            temp2 += '<div>请求信息' + obj['requestContext'] + '</div>'
+            temp2 += '<div>是否完成' + obj['isFinish'] + '</div>'
+            temp2 += '<div>目标文件' + obj['targetFile'] + '</div>'
+            temp2 += '</div>'
+            temp += temp2
+        }
+        temp += '</div>'
+        result += temp
+    }
+    $('.ioSystem').html(result)
+}
+
+// 添加设备
+$('.createDevice').click(function () {
+    let deviceName = $('.inputDeviceName').val()
+    let transferRate = $('.inputTransferRate').val()
+
+    $.ajax({
+        type: 'POST',                                                               // 提交方式POST ajax 中 有6种提交方式
+        url: '/createDevice',                                                       // 提交目标地址
+        data: {'deviceName': deviceName, 'transferRate': transferRate},             // 提交的数据
+        success: function(data) {                                                   // 成功提交以后的回调函数
+            if(data["message"] === "Success!"){
+                alert("添加设备成功!")
+            }
+        }
+    })
+})
+
+
 
 
 

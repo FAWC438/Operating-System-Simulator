@@ -1,5 +1,6 @@
 from flask import Blueprint, session, request, jsonify
 from kernal.Memory import *
+from kernal.PageAndFrame import Frame
 
 memory = Blueprint('memory', __name__)
 MemorySize = 5
@@ -17,6 +18,7 @@ def setMemory(memo: list):
     Memory = memo
 
 
+# 获取内存基本信息
 def MemoryInfo():
     global Memory, MemorySize, Algorithm
     memoList = []
@@ -31,29 +33,38 @@ def MemoryInfo():
     return message
 
 
+# 获取某一帧的详细信息
 def MemoryDetailInfo(frameId):
     global Memory
     message = {}
     for f in Memory:
         if f.frame_id == frameId:
             if f.is_used:
-                message.update({"isUsed": "True"})
+                message.update({"memoryState": "True"})
             else:
-                message.update({"isUsed": "False"})
-            message.update({"pageId": f.mapping_page.page_id,
-                            "pcbId": f.mapping_page.pcb_id})
+                message.update({"memoryState": "False"})
+            if f.mapping_page is not None:
+                message.update({"frameId": f.frame_id,
+                                "memoryPageId": f.mapping_page.page_id,
+                                "memoryProcessId": f.mapping_page.pcb_id})
+            else:
+                message.update({"frameId": f.frame_id,
+                                "memoryPageId": "",
+                                "memoryProcessId": ""})
             return message
     return {"message": "Failed! Frame Wrong!"}
 
 
+# 获取内存基本信息
 @memory.route("/getMemoryInfo", methods=['POST'])
 def getMemoryInfo():
     message = MemoryInfo()
     return jsonify(message)
 
 
+# # 获取某一帧的详细信息
 @memory.route("/getMemoryDetailInfo", methods=['POST'])
 def getMemoryDetailInfo():
-    session["frameId"] = request.form.get("frameId")
+    session["frameId"] = Memory[int(request.form.get("frameID"))-1].frame_id
     message = MemoryDetailInfo(session["frameId"])
     return jsonify(message)

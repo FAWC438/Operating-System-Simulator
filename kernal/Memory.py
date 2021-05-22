@@ -1,4 +1,14 @@
-from PageAndFrame import *
+pageInterrupt = 0
+
+
+def getPage():
+    global pageInterrupt
+    return pageInterrupt
+
+
+def setPage(p):
+    global pageInterrupt
+    pageInterrupt = p
 
 
 def freeMemory(pageList: list):
@@ -37,7 +47,10 @@ def allocateMemory(pageList: list, process_q: list, Memory: list):
             pageFault(p, process_q)
 
 
-def pageFault(page_to_replace, process_q, EI: bool = False):
+# 缺页调度
+def pageFault(page_to_replace, process_q):
+    global pageInterrupt
+    pageInterrupt = 1
     # 以下为LRU
     process_to_replace = LRU(process_q)
 
@@ -45,7 +58,6 @@ def pageFault(page_to_replace, process_q, EI: bool = False):
     #     process_to_replace = OPT(process_q)
 
     # 进行页面置换
-
     replace_success_flag = False
     if process_to_replace is not None:
         for page in process_to_replace.page_list:
@@ -59,8 +71,7 @@ def pageFault(page_to_replace, process_q, EI: bool = False):
                 replace_success_flag = True
                 break
     if not replace_success_flag:
-        print("页置换错误!!!!", end=' ')
-        print(process_to_replace)
+        print("页置换错误!!!!")
 
 
 def LRU(process_q):
@@ -68,12 +79,8 @@ def LRU(process_q):
     process_to_replace = None
     # 先找到可以被置换的，最久没有使用的进程
     for process in process_q:
-        if process.scheduled_info != [] and \
-                (process.scheduled_info[-1][1] == 1 or
-                 process.scheduled_info[-1][1] == 3 or
-                 process.scheduled_info[-1][1] == 5):
+        if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
             # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
-
             # 若一个进程所有的页已经被换出，则不必再考虑该进程
             for page in process.page_list:
                 if page.is_allocated:
@@ -87,6 +94,7 @@ def LRU(process_q):
     return process_to_replace
 
 
+# 不现实，但是可以用于检测调度效率
 def OPT(process_q):
     max_time = 9999999
     longest_time = 0
@@ -94,7 +102,6 @@ def OPT(process_q):
     for process in process_q:
         if process.scheduled_info != [] and process.scheduled_info[-1][1] == 1:
             # 只查找每个最近（列表最后一位）被暂停（元组第二位为2）的进程，因为只有这些进程被分配过内存，且没有正在运行
-
             # 若一个进程所有的页已经被换出，则不必再考虑该进程
             for page in process.page_list:
                 if page.is_allocated:
@@ -107,7 +114,3 @@ def OPT(process_q):
                 longest_time = max_time - process.scheduled_info[-1][0]
                 process_to_replace = process
     return process_to_replace
-
-
-def initMemory(MemorySize: int = 5):
-    return [Frame(i) for i in range(MemorySize)]  # 默认内存有5个帧

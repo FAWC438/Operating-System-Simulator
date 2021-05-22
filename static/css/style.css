@@ -33,11 +33,11 @@ div.fileInfo
     display: flex;
     flex-direction: column;
     font-size: 26px;
-    padding: 10px 30px 15px 30px;
+    padding: 10px 20px 15px 20px;
     box-shadow: 0 0 8px 4px rgb(230, 230, 230),
                 0 0 48px 6px rgb(240, 240, 240) inset;
     background-color: rgb(250, 250, 250);
-    width: 20vw;
+    width: 21vw;
     height: 39vh;
 }
 
@@ -65,6 +65,13 @@ div.fileAttribute
 
 
 }
+
+div.processQueue > div:hover
+{
+    transition: 0.8s;
+    filter: brightness(105%);
+}
+
 
 
 textarea.fileContext
@@ -206,6 +213,7 @@ input.reName, input.newFile
     margin-top: 10px;
     margin-bottom: 10px;
     box-shadow: 0 0 2px 1px rgb(120, 120, 120) inset;
+    width: 170px;
 }
 
 div.fileBrief
@@ -328,13 +336,20 @@ div.processInfo > div
     margin-top: 3px;
 }
 
-button#ioInterruption, button#pageFault
+button#ioInterruption, button#pageFault, button#start, button#confirm, button#timeInterruption
 {
     border: none;
     padding: 5px 10px 5px 10px;
     font-size: 18px;
     margin-left: 20px;
     margin-right: 20px;
+}
+
+button#start
+{
+    box-shadow: 0 0 6px 3px rgb(167, 167, 167),
+                0 0 24px 6px rgb(198, 198, 198) inset;
+    background-color: rgb(211, 211, 211);
 }
 
 button#ioInterruption:valid
@@ -352,7 +367,14 @@ button#pageFault:valid
     background-color: rgb(200, 200, 200);
 }
 
-button#ioInterruption:invalid, button#pageFault:invalid
+button#timeInterruption:valid
+{
+    box-shadow: 0 0 5px 2px rgb(160, 160, 160),
+                0 0 24px 4px rgb(190, 190, 190) inset;
+    background-color: rgb(200, 200, 200);
+}
+
+button#ioInterruption:invalid, button#pageFault:invalid, button#start:invalid, button#confirm:invalid, button#timeInterruption:invalid
 {
     box-shadow: 0 0 5px 2px rgb(140, 140, 140),
                 0 0 24px 4px rgb(180, 180, 180) inset;
@@ -383,9 +405,10 @@ div.ioSystem
     display: flex;
     flex-direction: row;
     justify-content: center;
+    overflow: scroll;
 }
 
-div.disk, div.netWorkCard, div.keyBoard, div.mouse
+div.ioSystem > div
 {
     width: 7.9vw;
     padding: 12px;
@@ -396,7 +419,7 @@ div.disk, div.netWorkCard, div.keyBoard, div.mouse
     overflow-x: auto;
 
     box-shadow: 0 0 5px 2px rgb(220, 220, 220),
-                0 0 24px 4px rgb(230, 230, 230) inset;
+    0 0 24px 4px rgb(230, 230, 230) inset;
     background-color: rgb(240, 240, 240);
 }
 
@@ -457,6 +480,7 @@ div.memoryQueue
 
 span.memoryBlock
 {
+    transition: 0.8s;
     margin: 10px;
     padding: 10px 20px 10px 20px;
     font-size: 31px;
@@ -468,6 +492,7 @@ span.memoryBlock
 
 span.occupiedMemoryBlock
 {
+    transition: 0.8s;
     margin: 10px;
     padding: 10px 20px 10px 20px;
     font-size: 31px;
@@ -476,9 +501,6 @@ span.occupiedMemoryBlock
                 0 0 24px 6px rgb(235, 235, 235) inset;
     background-color: rgb(255, 255, 255);
 }
-
-
-
 
 div.memoryDetail
 {
@@ -494,14 +516,13 @@ div.memoryDetail
     background-color: rgb(255, 255, 255);
 }
 
-div.memoryIdTitle, div.memoryState, div.memoryPageId, div.memoryProcessId
+div.memoryIdTitle, div.memoryState, div.memoryPageId, div.memoryProcessId, div.frameId
 {
-    font-size: 20px;
+    font-size: 14px;
     margin-left: 40px;
     margin-top: 10px;
     margin-bottom: 10px;
 }
-
 
 div.ioRequest
 {
@@ -514,3 +535,154 @@ div.ioRequest
 }
 
 
+div.footer
+{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 10px;
+    padding: 10px 10px 10px 20px;
+
+    box-shadow: 0 0 6px 3px rgb(221, 221, 221),
+                0 0 24px 4px rgb(234, 234, 234) inset;
+    background-color: rgb(255, 255, 255);
+    font-size: 16px;
+}
+
+div.footerTitle
+{
+    font-size: 20px;
+}
+
+div.footer > span
+{
+    margin-left: 10px;
+    padding: 5px;
+    font-size: 17px;
+}
+
+div.footer > span > input
+{
+    font-size: 17px;
+}
+
+input.createProcessType
+{
+    width: 12px;
+}
+
+input.createProcessArriveTime, input.createProcessDuration, input.createProcessIODuration
+{
+    width: 60px;
+}
+
+input.createProcessTargetDevice
+{
+    width: 24px;
+}
+
+input.createProcessIORequestInfo
+{
+    width: 120px;
+}
+
+input.createProcessPriority, input.createProcessOccupiedPage
+{
+    width: 24px;
+}
+
+button.createProcess, button.createDevice
+{
+    margin-left: 10px;
+    padding: 6px 20px 6px 20px;
+    box-shadow: 0 0 3px 1px rgb(180, 180, 180),
+                0 0 6px 2px rgb(200, 200, 200) inset;
+    background-color: rgb(220, 220, 220);
+    border: none;
+}
+
+div.ioSystem::-webkit-scrollbar
+{
+    height: 3px;
+    width: 3px;
+}
+
+
+div.ioSystem > div
+{
+    font-size: 20px;
+}
+
+input#c0
+{
+    font-size: 20px;
+    width: 54px;
+}
+
+span#interruptButtonBar > span
+{
+    margin-left: 5px;
+    font-size: 20px;
+}
+
+
+input
+{
+    transition: 0.4s;
+    border: none;
+    outline: none;
+    box-shadow: 0 0 3px 1px rgb(220, 220, 220),
+                0 0 4px 2px rgb(230, 230, 230) inset;
+    background-color: rgb(240, 240, 240);
+}
+
+input:focus
+{
+    transition: 0.4s;
+    border: none;
+    outline: none;
+    box-shadow: 0 0 3px 1px rgb(225, 225, 225),
+                0 0 4px 2px rgb(240, 240, 240) inset;
+    background-color: rgb(255, 255, 255);
+}
+
+
+div.request
+{
+    padding: 5px;
+    margin: 5px;
+
+    box-shadow: 0 0 3px 1px rgb(225, 225, 225),
+                0 0 4px 2px rgb(240, 240, 240) inset;
+    background-color: rgb(255, 255, 255);
+
+}
+
+div.request > div
+{
+    font-size: 13px;
+}
+
+button
+{
+    transition: 0.8s;
+}
+
+button:hover
+{
+    transition: 0.8s;
+    filter: brightness(115%);
+}
+
+button:active
+{
+    transition: 0.8s;
+    filter: invert(100%);
+}
+
+div.memoryQueue > span:hover
+{
+    transition: 0.8s;
+    filter: invert(100%);
+}

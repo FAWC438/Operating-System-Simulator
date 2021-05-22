@@ -1,6 +1,6 @@
 from enum import Enum
 
-import Tool
+from kernal import Tool
 
 
 class DataType(Enum):
@@ -8,8 +8,7 @@ class DataType(Enum):
     枚举类型
     """
     Default = 0
-    File = 1
-    IO = 2
+    IO = 1
 
 
 class PageAlgorithm(Enum):
@@ -40,18 +39,9 @@ class Page:
         self.mapping_frame = mapping_frame
         self.is_allocated = False
         self.mem_type = mem_type
-        self.file = None  # TODO 页所存储的文件
-        self.IO_device = None  # TODO 页所存储的io设备
+        self.file = None                        # TODO 页所存储的文件
+        self.IO_device = None                   # TODO 页所存储的io设备
         all_page.append(self)
-
-    # def __str__(self):
-    #     string = "页ID：{}".format(self.page_id) + '\n' + \
-    #              "页大小：{}".format(self.size) + '\n' + \
-    #              "页是否占用：{}".format(self.bitmap) + '\n' + \
-    #              "页已用大小：{}".format(self.used_size) + '\n' + \
-    #              "页地址：{}".format(self.page_address) + '\n' + \
-    #              "存储数据类型：{}".format(self.mem_type) + '\n'
-    #     return string
 
 
 class Frame:
@@ -60,6 +50,6 @@ class Frame:
         Page 的构造函数展示了页结构，构造函数用于初始化页
         :param mapping_page: 该帧所映射到的页的id
         """
-        self.frame_id = Tool.uniqueNum()
-        self.mapping_page = mapping_page
-        self.is_used = False
+        self.frame_id = Tool.uniqueNum()        # 为每一帧设置唯一id
+        self.mapping_page = mapping_page        # 帧映射的页
+        self.is_used = False                    # 当帧被使用则为True

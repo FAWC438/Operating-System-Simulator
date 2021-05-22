@@ -3,6 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <title>操作系统前端</title>
+        <link href="/img/favicon.ico" rel="shortcut icon">
         <link rel="stylesheet" href="/css/style.css"/>
         <script src="/js/http_ajax.aspnetcdn.com_ajax_jquery_jquery-3.5.1.js"></script>
         <script src="/js/script.js" defer></script>
@@ -13,11 +14,16 @@
         <div class="header">
             <span class="systemClock">系统时钟: </span>
             <span id="interruptButtonBar">
-                <button id="pageFault">缺页中断</button>
+                <span>进程调度算法:<input id="c0" maxlength="1"></span>
+                <button id="start">启动</button>
                 <button id="ioInterruption" disabled>I O 中断</button>
+                <button id="timeInterruption" disabled>时间片中断</button>
+                <button id="pageFault" disabled>缺页中断</button>
             </span>
+
         </div>
         <!--主体部分-->
+
         <div class="body">
             <!--文件系统-->
             <div class="fileSystem">
@@ -53,9 +59,7 @@
                 <div class="processSystem">
                     <!--进程队列-->
                     <div class="processQueue">进程队列
-                        <div class="waitingQueue">等待队列
-                            <div class="processBlock">312830</div>
-                        </div>
+                        <div class="waitingQueue">等待队列</div>
                         <div class="swapQueue">交换队列</div>
                         <div class="uncreatedQueue">未建队列</div>
                         <div class="runningQueue">执行队列</div>
@@ -81,45 +85,6 @@
                 <!--外设和内存-->
                 <div class="ioAndMemory">
                     <div class="ioSystem">外设系统
-                        <div class="netWorkCard">
-                            <div class="name">网卡</div>
-                            <div class="state">状态:空闲</div>
-                            <div class="newWorkCardQueue">
-                                <div class="ioRequest">
-                                    <div>文件:</div>
-                                    <div>操作:</div>
-                                    <div>地址:</div>
-                                    <div>长度:</div>
-                                </div>
-                                <div class="ioRequest">
-                                    <div>文件:</div>
-                                    <div>操作:</div>
-                                    <div>地址:</div>
-                                    <div>长度:</div>
-                                </div>
-                                <div class="ioRequest">
-                                    <div>文件:</div>
-                                    <div>操作:</div>
-                                    <div>地址:</div>
-                                    <div>长度:</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="disk">
-                            <div class="name">磁盘</div>
-                            <div class="state">状态:空闲</div>
-                            <div class="diskQueue"></div>
-                        </div>
-                        <div class="mouse">
-                            <div class="name">鼠标</div>
-                            <div class="state">状态:空闲</div>
-                            <div class="mouseQueue"></div>
-                        </div>
-                        <div class="keyBoard">
-                            <div class="name">键盘</div>
-                            <div class="state">状态:空闲</div>
-                            <div class="keyBoardQueue"></div>
-                        </div>
                     </div>
                     <div class="memorySystem">
                         <div class="memoryBrief">内存系统
@@ -134,16 +99,33 @@
                             </div>
                         </div>
                         <div class="memoryDetail">内存详情
-                            <div class="memoryIdTitle">编号: 4</div>
-                            <div class="frameId">帧id: 113813</div>
+                            <div class="memoryIdTitle">编号: </div>
+                            <div class="frameId">帧id: </div>
                             <div class="memoryState">占用状态: 未占用</div>
                             <div class="memoryPageId">页ID: </div>
                             <div class="memoryProcessId">进程ID: </div>
                         </div>
                     </div>
                 </div>
-
             </div>
+        </div>
+        <div class="footer">
+            <div class="footerTitle">创建进程</div>
+            <span>进程类型:<input class="createProcessType" maxlength="1"></span>
+            <span>到达时间:<input class="createProcessArriveTime" maxlength="5"></span>
+            <span>持续时间:<input class="createProcessDuration" maxlength="5"></span>
+            <span>IO持续时间:<input class="createProcessIODuration" maxlength="5"></span>
+            <span>目标设备:<input class="createProcessTargetDevice" maxlength="2"></span>
+            <span>IO请求信息:<input class="createProcessIORequestInfo"></span>
+            <span>进程优先级:<input class="createProcessPriority" maxlength="2"></span>
+            <span>进程所占页数:<input class="createProcessOccupiedPage" maxlength="2"></span>
+            <button class="createProcess">创建</button>
+        </div>
+        <div class="footer">
+            <div class="footerTitle">创建外设</div>
+            <span>设备名称:<input class="inputDeviceName"></span>
+            <span>转换速率:<input class="inputTransferRate"></span>
+            <button class="createDevice">创建</button>
         </div>
     </body>
 </html>

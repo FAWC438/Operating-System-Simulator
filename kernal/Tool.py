@@ -4,7 +4,7 @@ import random
 
 def uniqueNum():
     """
-    生成唯一的随机数
+    生成唯一的随机数用于ID号
     :return:随机数
     """
     for i in range(0, 10):
@@ -13,5 +13,3 @@ def uniqueNum():
         if randomNum < 10:
             randomNum = str(0) + str(randomNum)
         return str(nowTime) + str(randomNum)
-
-# print(uniqueNum())

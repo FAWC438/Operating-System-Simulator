@@ -1,13 +1,19 @@
-from queue import Queue
-
 from kernal import IOSystem, Memory
-import IOSystem
 from kernal.FileSystem import Folder
-from FileSystem import Folder
-from kernal.Memory import freeMemory, allocateMemory
-from Memory import freeMemory, allocateMemory
-from kernal.Process import Process, State, DataType, scheduling_algorithm, ProcessAlgorithm
-from Process import Process, State, DataType, scheduling_algorithm, ProcessAlgorithm
+from kernal.Memory import freeMemory, allocateMemory, getPage, setPage
+from kernal.Process import Process, State, DataType, scheduling_algorithm, ProcessAlgorithm, getAlgorithm
+
+# IO中断和时间片中断的标志位
+ioInter, timeInter = 0, 0
+
+
+def initInter():
+    """
+    初始化IO和时间片中断为状态0
+    """
+    global ioInter, timeInter
+    ioInter, timeInter = 0, 0
+    setPage(0)
 
 
 def swapOut(target_process: Process, system_clock: int, swap_q: list):
@@ -160,7 +166,7 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
 
-    # root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
+    root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
 
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环
@@ -187,16 +193,16 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     # IO 执行完毕，发出中断
     for p in process_now_q:
         # assert isinstance(p, Process)
-        if p.state == State.waiting:
-            root, Disk, file_table = IOSystem.syncIO(p.device_request, root, Disk, file_table)
-            if p.device_request.is_finish:
-                interruptSignal(p, system_clock)
+        if p.state == State.waiting and p.device_request.is_finish:
+            interruptSignal(p, system_clock)
 
     process_now_q.sort(key=lambda x: x.priority)
 
     # 优先级为 0，发出 IO 中断
     if process_now_q[0].priority == 0:
         IO_trigger(proc_cur, process_now_q[0], system_clock)
+        global ioInter
+        ioInter = 1
 
     '''
     进程swap策略（仅适用于优先级抢占调度）
@@ -283,7 +289,6 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
                                       root: Folder, Disk: list, file_table: list):
     """
     异步 IO优先级调度
-
     :param file_table: 文件表
     :param Disk: 文件系统磁盘
     :param root: 文件目录根节点
@@ -294,7 +299,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     :param proc_running:上一时钟周期的进程
     :param process_q:进程队列
     :param system_clock:系统时钟
-    :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
+    :return:返回4个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q
     """
     root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
 
@@ -305,7 +310,6 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     for p in process_q:
         if p.state != State.terminated:
             over_flag = False
-            break
             # if p.state != State.running:
             #     p.state = State.ready
     if over_flag:
@@ -318,6 +322,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
                          and i.state != State.terminated]
 
     if not process_now_queue:
+        system_clock += 1
         return 2, proc_cur, proc_running, process_now_queue, [root, Disk, file_table]
 
     process_now_queue.sort(key=lambda x: x.priority)
@@ -341,10 +346,11 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     # 异步IO。得到优先级最高的进程（优先级数字越低表示优先级越高）
     proc_cur = process_now_queue[0]
 
-    # assert isinstance(proc_cur, Process)
+    assert isinstance(proc_cur, Process)
 
     # 同时只有一个 running 的进程
     if proc_cur.state == State.running:
+        proc_cur.occupied_time += 1
 
         # 进程执行完毕
         if proc_cur.occupied_time >= proc_cur.get_last_time():
@@ -352,11 +358,11 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
 
             proc_cur.scheduled_info.append((system_clock, 2))
             proc_cur.terminate()  # 该方法会将进程变为terminated态
-
-        proc_cur.occupied_time += 1
     elif proc_cur.state == State.ready:
         if proc_cur.occupied_time == 0 and proc_cur.get_process_type() == DataType.IO:  # 该进程从未发生过且为 IO 类型
             proc_cur.IO_expect_return_time = IO_request(proc_cur, system_clock)
+            # 需要向用户显示异步IO的结果会在什么时候返回
+            # 注意，IO中断返回的这个时间是预计时间，由于IO调度，该数字可能会发生很大的变化
 
         # 有进程在运行，但不是当前进程，需要发生抢占
         if proc_running is not None and proc_running != proc_cur and proc_running.state != State.HangUp:
@@ -447,6 +453,8 @@ def roundRobinForBackEnd(process_q: list, process_now_q: list, system_clock: int
             process_now_q.append(proc_cur)
 
             timer_trigger(proc_cur, system_clock)
+            global timeInter
+            timeInter = 1
 
     if time_slice <= 0 or proc_running is None:
         # 上一个时间片的进程执行结束了
@@ -466,7 +474,6 @@ def roundRobinForBackEnd(process_q: list, process_now_q: list, system_clock: int
     #             break
     #         process_now_q.append(tmp_p)
     if proc_cur.state == State.running:
-
         # 进程执行完毕
         if proc_cur.occupied_time >= proc_cur.get_last_time():
             # if process_cur.get_process_type() == DataType.IO and not process_cur.device_request.is_finish:
@@ -587,7 +594,7 @@ def IO_trigger(proc_cur: Process, proc_io: Process, system_clock: int, EI: bool 
     # is_interrupt = False
 
 
-def interruptSignal(process: Process, system_clock: int, is_interrupt: bool = False):
+def interruptSignal(process: Process, system_clock: int):
     """
     IO中断
 
@@ -605,20 +612,28 @@ def interruptSignal(process: Process, system_clock: int, is_interrupt: bool = Fa
     process.state = State.ready
     process.scheduled_info.append((system_clock, 6))
 
-    # 允许嵌套中断位
-    # is_interrupt = False
 
+def getMsg(process_q: list, swap_queue: list, proc_now: list):
+    """
+    获取各进程队列信息
 
-def getMsg(process_q, swap_queue, proc_now):
+    :param process_q: 所有进程队列
+    :param swap_queue: 被置换的进程队列
+    :param proc_now: 当前正在/即将被执行的进程队列
+    :return: running, waiting, 未创建, 已销毁, 被置换进程队列
+    """
     msgRunning = []
     msgWaiting = []
     msgUncreated = []
     msgTerminated = []
     msgSwapOut = []
+    if proc_now is not None:
+        for proc in proc_now:
+            if proc.state != State.terminated and proc.state != State.waiting:
+                msgRunning.append(proc.get_process_id())
+
     for proc in process_q:
-        if proc.state == State.running:
-            msgRunning.append(proc.get_process_id())
-        elif proc.state == State.waiting:
+        if proc.state == State.waiting:
             msgWaiting.append(proc.get_process_id())
         elif proc.state == State.terminated:
             msgTerminated.append(proc.get_process_id())
@@ -630,35 +645,112 @@ def getMsg(process_q, swap_queue, proc_now):
     return msgRunning, msgWaiting, msgUncreated, msgTerminated, msgSwapOut
 
 
-def createQueue(clock: int, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr):
+def createQueue(clock: int, stat, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr, ts):
+    """
+    创建进程的初始测试用例
+
+    :param clock: 系统时钟
+    :param stat:
+    :param swap_queue: 置换进程队列
+    :param proc_running: 当前正在运行的程序
+    :param proc_cur: 当前待处理的进程
+    :param proc_now: 当前正在/即将被执行的进程队列
+    :param memory: 内存
+    :param device_table: 设备表
+    :param fileAttr: 文件操作参数
+    :param ts: 时间片
+    :return: 同上, 并额外返回一个不同中断的状态列表
+    """
     process_q = [Process(DataType.Default, 0, 5, priority=10), Process(DataType.Default, 1, 3, priority=8),
                  Process(DataType.Default, 3, 6, priority=12), Process(DataType.Default, 2, 11, priority=2),
                  Process(DataType.Default, 5, 2, priority=6)]
-    process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr = \
-        DoAlgorithm(clock, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr)
-    return process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr
+    stat, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr, ts, interrupt = \
+        DoAlgorithm(clock, stat, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table,
+                    fileAttr, ts)
+    return stat, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr, ts, interrupt
 
 
-def DoAlgorithm(clock: int, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr):
-    if scheduling_algorithm == ProcessAlgorithm.Priority:
-        # 通过PyCharm的调试可查看输出结果
-        # system_clock = prioritySchedulingSync(process_queue, system_clock)
-        state, proc_cur, proc_running, proc_now, fileAttr = prioritySchedulingAsyncForBackEnd(process_q,
-                                                                                              clock,
-                                                                                              swap_queue,
-                                                                                              proc_running,
-                                                                                              proc_cur,
-                                                                                              memory,
-                                                                                              device_table,
-                                                                                              fileAttr[0],
-                                                                                              fileAttr[1],
-                                                                                              fileAttr[2])
-    return process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr
-    # system_clock = fcfs(process_queue, system_clock)
-    # system_clock = round_robin(process_queue, system_clock)
+def DoAlgorithm(clock: int, stat, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table,
+                fileAttr, ts):
+    """
+    根据输入的算法类型执行相应算法
+
+    :param clock:
+    :param stat:
+    :param process_q:
+    :param swap_queue:
+    :param proc_running:
+    :param proc_cur:
+    :param proc_now:
+    :param memory:
+    :param device_table:
+    :param fileAttr:
+    :param ts:
+    :return:
+    """
+    global ioInter, timeInter
+    alg = getAlgorithm()
+    # 异步优先级调度
+    if alg == ProcessAlgorithm.PriorityAsync:
+        stat, proc_cur, proc_running, proc_now, fileAttr = prioritySchedulingAsyncForBackEnd(process_q,
+                                                                                             clock,
+                                                                                             swap_queue,
+                                                                                             proc_running,
+                                                                                             proc_cur,
+                                                                                             memory,
+                                                                                             device_table,
+                                                                                             fileAttr[0],
+                                                                                             fileAttr[1],
+                                                                                             fileAttr[2])
+    # 同步优先级调度
+    elif alg == ProcessAlgorithm.PrioritySync:
+        stat, proc_cur, proc_running, proc_now, fileAttr = prioritySchedulingSyncForBackEnd(process_q,
+                                                                                            clock,
+                                                                                            swap_queue,
+                                                                                            proc_running,
+                                                                                            proc_cur,
+                                                                                            memory,
+                                                                                            device_table,
+                                                                                            fileAttr[0],
+                                                                                            fileAttr[1],
+                                                                                            fileAttr[2])
+    # 先进先出调度
+    elif alg == ProcessAlgorithm.FCFS:
+        stat, proc_cur, proc_running, proc_now, fileAttr = fcfsForBackEnd(process_q,
+                                                                          clock,
+                                                                          proc_running,
+                                                                          proc_cur,
+                                                                          memory,
+                                                                          device_table,
+                                                                          fileAttr[0],
+                                                                          fileAttr[1],
+                                                                          fileAttr[2])
+    # 轮转调度
+    elif alg == ProcessAlgorithm.RR:
+        stat, proc_cur, proc_running, proc_now, fileAttr, ts = roundRobinForBackEnd(process_q,
+                                                                                    proc_now,
+                                                                                    clock,
+                                                                                    proc_running,
+                                                                                    proc_cur,
+                                                                                    memory,
+                                                                                    device_table,
+                                                                                    fileAttr[0],
+                                                                                    fileAttr[1],
+                                                                                    fileAttr[2],
+                                                                                    ts)
+    pageInter = getPage()
+    return stat, process_q, swap_queue, proc_running, proc_cur, proc_now, memory, device_table, fileAttr, ts, \
+           [ioInter, timeInter, pageInter]
 
 
 def getProcessInfo(processId: str, process_q):
+    """
+    获取指定进程信息
+
+    :param processId: 进程ID号
+    :param process_q: 所有进程队列
+    :return: json
+    """
     message = {}
     for proc in process_q:
         if processId == proc.get_process_id():
@@ -666,18 +758,32 @@ def getProcessInfo(processId: str, process_q):
             if proc.page_list is not None:
                 for p in proc.page_list:
                     page_list.append(p.page_id)
-            message.update({"processId": processId,
-                            "processType": str(proc.get_process_type()),
-                            "processArriveTime": proc.get_arrive_time(),
-                            "processDuration": proc.get_last_time(),
-                            "processState": str(proc.state),
-                            "processPriority": proc.priority,
-                            "processSchedule": proc.scheduled_info,
-                            "processPageNumber": proc.get_page_num(),
-                            "processPagesId": page_list,
-                            "deviceRequest": proc.device_request,
-                            "deviceRequestBit": proc.device_request_is_finish,
-                            "processScene": proc.recover})
+            # 普通进程和IO进程分开处理
+            if proc.get_process_type() == DataType.IO:
+                message.update({"processId": processId,
+                                "processType": str(proc.get_process_type()),
+                                "processArriveTime": proc.get_arrive_time(),
+                                "processDuration": proc.get_last_time(),
+                                "processState": str(proc.state),
+                                "processPriority": proc.priority,
+                                "processSchedule": proc.scheduled_info,
+                                "processPageNumber": proc.get_page_num(),
+                                "processPagesId": page_list,
+                                "deviceRequest": proc.device_request.request_content,
+                                "deviceRequestBit": proc.device_request_is_finish,
+                                "processScene": proc.recover})
+            else:
+                message.update({"processId": processId,
+                                "processType": str(proc.get_process_type()),
+                                "processArriveTime": proc.get_arrive_time(),
+                                "processDuration": proc.get_last_time(),
+                                "processState": str(proc.state),
+                                "processPriority": proc.priority,
+                                "processSchedule": proc.scheduled_info,
+                                "processPageNumber": proc.get_page_num(),
+                                "processPagesId": page_list,
+                                "processScene": proc.recover})
             return message
+    # 失败, 找不到对应进程
     message.update({"message": "Failed! Process Not Exists!"})
     return message

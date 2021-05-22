@@ -22,11 +22,20 @@ if __name__ == '__main__':
     time_slice = 2
 
     print('旧文件内容：' + FileSystem.readFile('test', root))
-    # 前端该做的
+
+    # process_queue = [Process(DataType.Default, 0, 5, priority=10), Process(DataType.Default, 1, 3, priority=8),
+    #                  Process(DataType.Default, 3, 6, priority=12),
+    #                  Process(DataType.IO, 8, 8, IO_operation_time=5, priority=7, target_device=d_table[1],
+    #                          request_content="这是个IO请求"),
+    #                  Process(DataType.IO, 11, 3, IO_operation_time=2, priority=4, target_device=d_table[0],
+    #                          request_content="writeFile|test|新内容!"),
+    #                  Process(DataType.Default, 2, 11, priority=2), Process(DataType.Default, 5, 2, priority=6)]
     process_queue = [Process(DataType.Default, 0, 5, priority=10), Process(DataType.Default, 1, 3, priority=8),
                      Process(DataType.Default, 3, 6, priority=12),
                      Process(DataType.IO, 8, 8, IO_operation_time=5, priority=7, target_device=d_table[1],
                              request_content="这是个IO请求"),
+                     Process(DataType.IO, 8, 6, IO_operation_time=3, priority=7, target_device=d_table[1],
+                             request_content="what"),
                      Process(DataType.IO, 11, 3, IO_operation_time=2, priority=4, target_device=d_table[0],
                              request_content="writeFile|test|新内容!"),
                      Process(DataType.Default, 2, 11, priority=2), Process(DataType.Default, 5, 2, priority=6)]
