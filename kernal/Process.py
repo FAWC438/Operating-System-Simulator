@@ -36,7 +36,7 @@ class ProcessAlgorithm(Enum):
     RR = 3
 
 
-scheduling_algorithm = ProcessAlgorithm.RR  # 使用的进程调度算法
+scheduling_algorithm = ProcessAlgorithm.PrioritySync  # 使用的进程调度算法
 
 
 class Process:

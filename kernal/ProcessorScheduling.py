@@ -61,7 +61,7 @@ def round_robin(process_q: list, system_clock: int, memory: list, device_table: 
     in_now_queue = [False for _ in process_q]  # 标记当前进程是否在 process_now_queue 中
     process_now_queue = Queue()
     while system_clock < 300:
-        IOSystem.asyncIO(device_table)
+        IOSystem.DMAController(device_table)
 
         # 如果所有进程都终止，调度结束
         over_flag = True
@@ -177,7 +177,7 @@ def fcfs(process_q: list, system_clock: int, memory: list, device_table: list):
     process_cur = None
 
     while system_clock < 300:
-        IOSystem.asyncIO(device_table)
+        IOSystem.DMAController(device_table)
         over_flag = True
 
         # 如果所有进程都终止，调度结束
@@ -391,7 +391,7 @@ def prioritySchedulingAsync(process_q: list, system_clock: int, memory: list, de
     process_running = None
 
     while system_clock < 300:
-        IOSystem.asyncIO(device_table)
+        IOSystem.DMAController(device_table)
 
         # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
         over_flag = True  # 所有进程执行完毕退出循环

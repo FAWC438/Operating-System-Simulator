@@ -61,7 +61,7 @@ def fcfsForBackEnd(process_q: list, system_clock: int, proc_running: Process, pr
     :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
 
-    IOSystem.asyncIO(device_table, root, Disk, file_table)
+    IOSystem.DMAController(device_table, root, Disk, file_table)
     over_flag = True
 
     # 如果所有进程都终止，调度结束
@@ -160,7 +160,7 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
 
-    root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
+    # root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
 
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环
@@ -187,8 +187,10 @@ def prioritySchedulingSyncForBackEnd(process_q: list, system_clock: int, swap_q:
     # IO 执行完毕，发出中断
     for p in process_now_q:
         # assert isinstance(p, Process)
-        if p.state == State.waiting and p.device_request.is_finish:
-            interruptSignal(p, system_clock)
+        if p.state == State.waiting:
+            root, Disk, file_table = IOSystem.syncIO(p.device_request, root, Disk, file_table)
+            if p.device_request.is_finish:
+                interruptSignal(p, system_clock)
 
     process_now_q.sort(key=lambda x: x.priority)
 
@@ -294,7 +296,7 @@ def prioritySchedulingAsyncForBackEnd(process_q: list, system_clock: int, swap_q
     :param system_clock:系统时钟
     :return:返回5个参数  code=1：正常执行完毕2：执行队列没有进程3：所有调度结束;    proc_cur    proc_running    process_now_q   文件系统参数列表
     """
-    root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
+    root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
 
     # 能不能把队列处理的这段代码封装一下，应该每种调度算法都会用到
     over_flag = True  # 所有进程执行完毕退出循环
@@ -403,7 +405,7 @@ def roundRobinForBackEnd(process_q: list, process_now_q: list, system_clock: int
     :return:
     """
 
-    root, Disk, file_table = IOSystem.asyncIO(device_table, root, Disk, file_table)
+    root, Disk, file_table = IOSystem.DMAController(device_table, root, Disk, file_table)
 
     # 如果所有进程都终止，调度结束
     over_flag = True

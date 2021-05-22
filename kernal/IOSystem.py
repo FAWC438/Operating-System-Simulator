@@ -80,9 +80,10 @@ def IODiskScheduling(request_queue: list):
     return scheduled_request_queue
 
 
-def asyncIO(device_table: list, root: Folder, Disk: list, file_table: list):
+def DMAController(device_table: list, root: Folder, Disk: list, file_table: list):
     """
-    异步IO。处理机调度的每个时钟周期开始必须调用它
+    DMA。处理机调度的每个时钟周期开始必须调用它
+
     :param device_table: 设备表
     :param root: 文件目录根节点
     :param Disk: 文件系统磁盘
@@ -116,6 +117,35 @@ def asyncIO(device_table: list, root: Folder, Disk: list, file_table: list):
 
         else:
             d.is_busy = False
+    return root, Disk, file_table
+
+
+def syncIO(targetRequest: DeviceRequest, root: Folder, Disk: list, file_table: list):
+    targetDevice = targetRequest.target_device
+    if not targetDevice.is_busy:
+        targetDevice.is_busy = True
+    # if targetDevice.name == 'Disk':
+    #     targetDevice.request_queue = IODiskScheduling(targetDevice.request_queue)
+    #     targetDevice.request_num = len(targetDevice.request_queue)
+    targetRequest.occupied_time += 1  # 请求运行时间增加一个时钟周期
+    if targetRequest.occupied_time >= targetRequest.IO_operation_time:
+        targetRequest.is_finish = True  # 请求中完成位置位
+        targetRequest.source_process.device_request_is_finish = True  # 发出请求的进程中的完成位置位
+
+        if targetDevice.name == 'Disk':
+            content = targetRequest.request_content
+            operation = content.split('|')
+            if operation[0] == 'renameFile':  # renameFile|旧文件名|新文件名
+                FileSystem.renameFile(operation[1], operation[2], root)
+            elif operation[0] == 'writeFile':  # writeFile|文件名|新内容
+                FileSystem.writeFile(operation[1], operation[2], root, Disk)
+            elif operation[0] == 'delFile':  # delFile|文件名
+                FileSystem.delFile(operation[1], file_table, root, Disk)
+            elif operation[0] == 'redirectFile':  # redirectFile|文件名|目标文件夹名
+                FileSystem.redirectFile(operation[1], operation[2], root)
+
+        # targetDevice.request_queue.remove(targetDevice.request_queue[0])
+
     return root, Disk, file_table
 
 
